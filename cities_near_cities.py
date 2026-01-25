@@ -385,6 +385,8 @@ class CitySearchApp:
             
             self.result_label.config(text=f"✅ {len(sorted_results)} villes trouvées")
             
+            self.result_label.config(text=f"✅ {len(sorted_results)} villes trouvées")
+            
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Erreur", f"Erreur lors de la récupération des données:\n{str(e)}")
             self.result_label.config(text="❌ Erreur")
@@ -556,23 +558,16 @@ class CitySearchApp:
             max_cities = self.max_cities_map.get()
             results_to_show = self.current_results[:max_cities]
             for city in results_to_show:
-                city_name = city['nom'].replace("'", "\\'")
-                alt_text = f"{city['altitude']}m" if city['altitude'] != "N/A" else "N/A"
-                temp_text = f"{city['temperature']}°C" if city['temperature'] != "N/A" else "N/A"
-                
-                popup_content = f"<div class='city-popup'><h3>{city_name}</h3>"
-                popup_content += f"<p>Population: {city['population']:,}</p>"
-                popup_content += f"<p>Distance: {city['distance']} km</p>"
-                popup_content += f"<p>Proche de: {city['ville_reference']}</p>"
-                popup_content += f"<p>Altitude: {alt_text}</p>"
-                popup_content += f"<p>Temp. moy.: {temp_text}</p></div>"
+                city_name = city['nom'].replace("'", "\\'").replace('"', '\\"')
+                alt_text = str(city['altitude']) + "m" if city['altitude'] != "N/A" else "N/A"
+                temp_text = str(city['temperature']) + "°C" if city['temperature'] != "N/A" else "N/A"
                 
                 html_content += f"""
-        var marker = L.marker([{city['lat']}, {city['lon']}], {{icon: blueIcon}})
-            .bindPopup('{popup_content}')
+        L.marker([{city['lat']}, {city['lon']}], {{icon: blueIcon}})
+            .bindPopup('<div class="city-popup"><h3>{city_name}</h3><p>Population: {city['population']:,}</p><p>Distance: {city['distance']} km</p><p>Proche de: {city['ville_reference']}</p><p>Altitude: {alt_text}</p><p>Temp. moy.: {temp_text}</p></div>')
             .addTo(map);
-        markers.push(marker);
 """
+                html_content += f"        markers.push(L.marker([{city['lat']}, {city['lon']}]));\n"
             
             html_content += """
         // Ajuster la vue pour afficher tous les marqueurs
