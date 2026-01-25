@@ -133,13 +133,25 @@ class CitySearchApp:
         self.max_cities_map = tk.IntVar(value=200)
         ttk.Entry(param_frame, textvariable=self.max_cities_map, width=15).grid(row=4, column=1, padx=5, pady=5)
         
+        # Options de récupération de données
+        options_frame = ttk.LabelFrame(main_frame, text="Options de données", padding="10")
+        options_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=10)
+        
+        self.fetch_altitude = tk.BooleanVar(value=False)
+        ttk.Checkbutton(options_frame, text="Récupérer l'altitude (API Open-Elevation)", 
+                       variable=self.fetch_altitude).grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
+        
+        self.fetch_temperature = tk.BooleanVar(value=False)
+        ttk.Checkbutton(options_frame, text="Récupérer la température moyenne (API Open-Meteo)", 
+                       variable=self.fetch_temperature).grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
+        
         # Bouton rechercher
         search_btn = ttk.Button(main_frame, text="🔍 Rechercher", command=self.search_cities)
-        search_btn.grid(row=3, column=0, columnspan=3, pady=10)
+        search_btn.grid(row=4, column=0, columnspan=3, pady=10)
         
         # Boutons d'export
         export_frame = ttk.Frame(main_frame)
-        export_frame.grid(row=4, column=0, columnspan=3, pady=5)
+        export_frame.grid(row=5, column=0, columnspan=3, pady=5)
         
         export_csv_btn = ttk.Button(export_frame, text="💾 Exporter en CSV", command=self.export_csv)
         export_csv_btn.grid(row=0, column=0, padx=5)
@@ -152,11 +164,11 @@ class CitySearchApp:
         
         # Label résultats
         self.result_label = ttk.Label(main_frame, text="", font=('Arial', 10, 'bold'))
-        self.result_label.grid(row=5, column=0, columnspan=3, pady=5)
+        self.result_label.grid(row=6, column=0, columnspan=3, pady=5)
         
         # Tableau des résultats
         result_frame = ttk.Frame(main_frame)
-        result_frame.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
+        result_frame.grid(row=7, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
         
         # Scrollbars
         vsb = ttk.Scrollbar(result_frame, orient="vertical")
@@ -194,7 +206,7 @@ class CitySearchApp:
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
-        main_frame.rowconfigure(6, weight=1)
+        main_frame.rowconfigure(7, weight=1)
         result_frame.columnconfigure(0, weight=1)
         result_frame.rowconfigure(0, weight=1)
     
@@ -229,23 +241,22 @@ class CitySearchApp:
             pass
         return None
     
-    def estimate_temperature(self, lat, altitude):
-        """Estime la température moyenne annuelle basée sur la latitude et l'altitude"""
-        # Formule simplifiée basée sur le gradient thermique
-        # Température de référence à latitude 45° et altitude 0m : environ 12°C
-        base_temp = 12.0
-        
-        # Effet de la latitude (environ -0.6°C par degré de latitude vers le nord)
-        lat_effect = (45 - lat) * 0.6
-        
-        # Effet de l'altitude (environ -0.65°C par 100m)
-        if altitude:
-            alt_effect = -(altitude / 100) * 0.65
-        else:
-            alt_effect = 0
-        
-        temp = base_temp + lat_effect + alt_effect
-        return round(temp, 1)
+    def get_temperature(self, lat, lon):
+        """Récupère la température moyenne annuelle via l'API Open-Meteo"""
+        try:
+            # API Open-Meteo pour obtenir les données climatiques historiques
+            url = f"https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date=2023-01-01&end_date=2023-12-31&daily=temperature_2m_mean&timezone=auto"
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                temps = data['daily']['temperature_2m_mean']
+                # Calculer la moyenne annuelle
+                valid_temps = [t for t in temps if t is not None]
+                if valid_temps:
+                    return round(sum(valid_temps) / len(valid_temps), 1)
+        except:
+            pass
+        return None
     
     def haversine_distance(self, lat1, lon1, lat2, lon2):
         R = 6371  # Rayon de la Terre en km
@@ -325,30 +336,42 @@ class CitySearchApp:
             # Tri par distance
             sorted_results = sorted(results.values(), key=lambda x: x['distance'])
             
-            # Enrichir avec altitude et température
-            self.result_label.config(text="🔄 Récupération des altitudes...")
-            self.root.update()
-            
-            for i, city in enumerate(sorted_results):
-                if i % 10 == 0:  # Mise à jour du statut tous les 10 villes
-                    self.result_label.config(text=f"🔄 Récupération des altitudes... ({i+1}/{len(sorted_results)})")
-                    self.root.update()
+            # Enrichir avec altitude et température si demandé
+            if self.fetch_altitude.get() or self.fetch_temperature.get():
+                total = len(sorted_results)
                 
-                altitude = self.get_elevation(city['lat'], city['lon'])
-                city['altitude'] = altitude if altitude is not None else "N/A"
-                
-                if altitude is not None:
-                    city['temperature'] = self.estimate_temperature(city['lat'], altitude)
-                else:
-                    city['temperature'] = self.estimate_temperature(city['lat'], 0)
+                for i, city in enumerate(sorted_results):
+                    if i % 5 == 0:  # Mise à jour du statut tous les 5 villes
+                        status = f"🔄 Récupération des données... ({i+1}/{total})"
+                        self.result_label.config(text=status)
+                        self.root.update()
+                    
+                    # Récupérer l'altitude si demandé
+                    if self.fetch_altitude.get():
+                        altitude = self.get_elevation(city['lat'], city['lon'])
+                        city['altitude'] = altitude if altitude is not None else "N/A"
+                    else:
+                        city['altitude'] = "N/A"
+                    
+                    # Récupérer la température si demandé
+                    if self.fetch_temperature.get():
+                        temp = self.get_temperature(city['lat'], city['lon'])
+                        city['temperature'] = temp if temp is not None else "N/A"
+                    else:
+                        city['temperature'] = "N/A"
+            else:
+                # Pas de récupération de données
+                for city in sorted_results:
+                    city['altitude'] = "N/A"
+                    city['temperature'] = "N/A"
             
             # Stocker les résultats
             self.current_results = sorted_results
             
             # Affichage dans le tableau
             for city in sorted_results:
-                alt_display = f"{city['altitude']}" if isinstance(city['altitude'], int) else city['altitude']
-                temp_display = f"{city['temperature']}" if city['temperature'] else "N/A"
+                alt_display = str(city['altitude']) if city['altitude'] != "N/A" else "N/A"
+                temp_display = str(city['temperature']) if city['temperature'] != "N/A" else "N/A"
                 
                 self.tree.insert('', tk.END, values=(
                     city['nom'],
@@ -388,8 +411,8 @@ class CitySearchApp:
                     
                     writer.writeheader()
                     for city in self.current_results:
-                        alt_val = city['altitude'] if isinstance(city['altitude'], int) else ''
-                        temp_val = city['temperature'] if city['temperature'] else ''
+                        alt_val = city['altitude'] if city['altitude'] != "N/A" else ''
+                        temp_val = city['temperature'] if city['temperature'] != "N/A" else ''
                         
                         writer.writerow({
                             'Ville': city['nom'],
@@ -433,7 +456,9 @@ class CitySearchApp:
                             'code_postal': city['code_postal'],
                             'population': city['population'],
                             'distance_km': city['distance'],
-                            'ville_reference': city['ville_reference']
+                            'ville_reference': city['ville_reference'],
+                            'altitude_m': city['altitude'] if city['altitude'] != "N/A" else None,
+                            'temperature_moyenne_c': city['temperature'] if city['temperature'] != "N/A" else None
                         }
                         for city in self.current_results
                     ]
@@ -532,9 +557,19 @@ class CitySearchApp:
             results_to_show = self.current_results[:max_cities]
             for city in results_to_show:
                 city_name = city['nom'].replace("'", "\\'")
+                alt_text = f"{city['altitude']}m" if city['altitude'] != "N/A" else "N/A"
+                temp_text = f"{city['temperature']}°C" if city['temperature'] != "N/A" else "N/A"
+                
+                popup_content = f"<div class='city-popup'><h3>{city_name}</h3>"
+                popup_content += f"<p>Population: {city['population']:,}</p>"
+                popup_content += f"<p>Distance: {city['distance']} km</p>"
+                popup_content += f"<p>Proche de: {city['ville_reference']}</p>"
+                popup_content += f"<p>Altitude: {alt_text}</p>"
+                popup_content += f"<p>Temp. moy.: {temp_text}</p></div>"
+                
                 html_content += f"""
         var marker = L.marker([{city['lat']}, {city['lon']}], {{icon: blueIcon}})
-            .bindPopup('<div class="city-popup"><h3>{city_name}</h3><p>Population: {city['population']:,}</p><p>Distance: {city['distance']} km</p><p>Proche de: {city['ville_reference']}</p></div>')
+            .bindPopup('{popup_content}')
             .addTo(map);
         markers.push(marker);
 """
