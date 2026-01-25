@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte des villes</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; width: 100%; }
+        .city-popup { font-family: Arial, sans-serif; }
+        .city-popup h3 { margin: 0 0 10px 0; color: #2c3e50; font-size: 16px; }
+        .city-popup p { margin: 5px 0; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        // Initialiser la carte
+        var map = L.map('map').setView([43.80164214285715, 2.471085714285714], 8);
+        
+        // Ajouter la couche de tuiles OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Créer des icônes personnalisées
+        var redIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+        
+        var blueIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+        
+        // Groupe de marqueurs pour ajuster la vue
+        var markers = [];
+        
+
+        // Zone de recherche pour Rodez
+        L.circle([44.3591, 2.5699], {
+            color: '#3498db',
+            fillColor: '#3498db',
+            fillOpacity: 0.1,
+            radius: 150000,
+            weight: 1
+        }).addTo(map);
+
+        var marker = L.marker([44.3591, 2.5699], {icon: redIcon})
+            .bindPopup('<div class="city-popup"><h3>Rodez</h3><p><strong>Ville de référence</strong></p></div>')
+            .addTo(map);
+        markers.push(marker);
+
+        L.marker([44.3824, 2.5614], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Onet-le-Château</h3><p>Population: 12 080</p><p>Distance: 2.7 km</p><p>Proche de: Rodez</p><p>Altitude: 572.0m</p><p>Temp. moy.: 12.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.3824, 2.5614]));
+
+        L.marker([44.3046, 2.5379], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Luc-la-Primaube</h3><p>Population: 6 046</p><p>Distance: 6.6 km</p><p>Proche de: Rodez</p><p>Altitude: 666.0m</p><p>Temp. moy.: 12.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.3046, 2.5379]));
+
+        L.marker([44.5686, 2.2563], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Decazeville</h3><p>Population: 5 020</p><p>Distance: 34.1 km</p><p>Proche de: Rodez</p><p>Altitude: 232.0m</p><p>Temp. moy.: 13.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.5686, 2.2563]));
+
+        L.marker([44.3471, 2.0296], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Villefranche-de-Rouergue</h3><p>Population: 11 271</p><p>Distance: 43.0 km</p><p>Proche de: Rodez</p><p>Altitude: 251.0m</p><p>Temp. moy.: 14.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.3471, 2.0296]));
+
+        L.marker([44.0548, 2.1672], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Carmaux</h3><p>Population: 9 872</p><p>Distance: 46.6 km</p><p>Proche de: Rodez</p><p>Altitude: 235.0m</p><p>Temp. moy.: 13.8°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.0548, 2.1672]));
+
+        L.marker([43.9571, 2.8533], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Affrique</h3><p>Population: 7 941</p><p>Distance: 50.1 km</p><p>Proche de: Rodez</p><p>Altitude: 311.0m</p><p>Temp. moy.: 13.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.9571, 2.8533]));
+
+        L.marker([44.6067, 2.0231], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Figeac</h3><p>Population: 9 793</p><p>Distance: 51.4 km</p><p>Proche de: Rodez</p><p>Altitude: 193.0m</p><p>Temp. moy.: 13.9°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.6067, 2.0231]));
+
+        L.marker([44.0982, 3.1176], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Millau</h3><p>Population: 22 044</p><p>Distance: 52.4 km</p><p>Proche de: Rodez</p><p>Altitude: 379.0m</p><p>Temp. moy.: 13.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.0982, 3.1176]));
+
+        L.marker([43.9362, 2.2293], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Juéry</h3><p>Population: 6 564</p><p>Distance: 54.3 km</p><p>Proche de: Rodez</p><p>Altitude: 239.0m</p><p>Temp. moy.: 14.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.9362, 2.2293]));
+
+        L.marker([44.879, 2.4631], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Arpajon-sur-Cère</h3><p>Population: 6 361</p><p>Distance: 58.4 km</p><p>Proche de: Rodez</p><p>Altitude: 675.0m</p><p>Temp. moy.: 11.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.879, 2.4631]));
+
+        L.marker([44.9281, 2.4416], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Aurillac</h3><p>Population: 26 214</p><p>Distance: 64.1 km</p><p>Proche de: Rodez</p><p>Altitude: 638.0m</p><p>Temp. moy.: 11.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.9281, 2.4416]));
+
+        L.marker([43.9119, 1.8898], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Gaillac</h3><p>Population: 16 162</p><p>Distance: 73.6 km</p><p>Proche de: Rodez</p><p>Altitude: 146.0m</p><p>Temp. moy.: 14.1°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.9119, 1.8898]));
+
+        L.marker([44.5349, 3.4909], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Mende</h3><p>Population: 12 464</p><p>Distance: 75.7 km</p><p>Proche de: Rodez</p><p>Altitude: 802.0m</p><p>Temp. moy.: 11.1°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.5349, 3.4909]));
+
+        L.marker([43.7592, 1.9976], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Graulhet</h3><p>Population: 13 129</p><p>Distance: 80.9 km</p><p>Proche de: Rodez</p><p>Altitude: 166.0m</p><p>Temp. moy.: 14.1°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7592, 1.9976]));
+
+        L.marker([45.0251, 3.073], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Flour</h3><p>Population: 6 391</p><p>Distance: 84.1 km</p><p>Proche de: Rodez</p><p>Altitude: 873.0m</p><p>Temp. moy.: 9.8°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([45.0251, 3.073]));
+
+        L.marker([44.1582, 1.5426], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Caussade</h3><p>Population: 6 803</p><p>Distance: 84.8 km</p><p>Proche de: Rodez</p><p>Altitude: 112.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.1582, 1.5426]));
+
+        L.marker([43.8397, 1.7279], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Rabastens</h3><p>Population: 5 867</p><p>Distance: 88.6 km</p><p>Proche de: Rodez</p><p>Altitude: 135.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.8397, 1.7279]));
+
+        L.marker([44.0629, 1.5373], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Nègrepelisse</h3><p>Population: 5 917</p><p>Distance: 88.6 km</p><p>Proche de: Rodez</p><p>Altitude: 116.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.0629, 1.5373]));
+
+        L.marker([44.4565, 1.439], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Cahors</h3><p>Population: 20 050</p><p>Distance: 90.5 km</p><p>Proche de: Rodez</p><p>Altitude: 139.0m</p><p>Temp. moy.: 13.8°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.4565, 1.439]));
+
+        L.marker([43.7296, 3.2949], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Lodève</h3><p>Population: 7 251</p><p>Distance: 90.9 km</p><p>Proche de: Rodez</p><p>Altitude: 211.0m</p><p>Temp. moy.: 15.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7296, 3.2949]));
+
+        L.marker([43.6915, 1.8137], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Lavaur</h3><p>Population: 10 965</p><p>Distance: 95.7 km</p><p>Proche de: Rodez</p><p>Altitude: 146.0m</p><p>Temp. moy.: 14.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6915, 1.8137]));
+
+        L.marker([43.6113, 3.1637], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Bédarieux</h3><p>Population: 5 804</p><p>Distance: 95.8 km</p><p>Proche de: Rodez</p><p>Altitude: 213.0m</p><p>Temp. moy.: 15.1°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6113, 3.1637]));
+
+        L.marker([43.7567, 1.6906], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Sulpice-la-Pointe</h3><p>Population: 9 719</p><p>Distance: 97.1 km</p><p>Proche de: Rodez</p><p>Altitude: 130.0m</p><p>Temp. moy.: 14.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7567, 1.6906]));
+
+        L.marker([43.4927, 2.3529], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Aussillon</h3><p>Population: 5 527</p><p>Distance: 97.9 km</p><p>Proche de: Rodez</p><p>Altitude: 371.0m</p><p>Temp. moy.: 13.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4927, 2.3529]));
+
+        L.marker([43.5026, 2.2591], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Labruguière</h3><p>Population: 6 584</p><p>Distance: 98.4 km</p><p>Proche de: Rodez</p><p>Altitude: 412.0m</p><p>Temp. moy.: 13.1°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5026, 2.2591]));
+
+        L.marker([43.4666, 2.3863], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Mazamet</h3><p>Population: 10 085</p><p>Distance: 100.3 km</p><p>Proche de: Rodez</p><p>Altitude: 534.0m</p><p>Temp. moy.: 12.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4666, 2.3863]));
+
+        L.marker([43.8582, 1.4947], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Villemur-sur-Tarn</h3><p>Population: 6 345</p><p>Distance: 102.3 km</p><p>Proche de: Rodez</p><p>Altitude: 96.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.8582, 1.4947]));
+
+        L.marker([43.6323, 3.4017], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Clermont-l\'Hérault</h3><p>Population: 9 461</p><p>Distance: 104.7 km</p><p>Proche de: Rodez</p><p>Altitude: 235.0m</p><p>Temp. moy.: 15.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6323, 3.4017]));
+
+        L.marker([43.6492, 3.5056], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-André-de-Sangonis</h3><p>Population: 6 427</p><p>Distance: 108.8 km</p><p>Proche de: Rodez</p><p>Altitude: 72.0m</p><p>Temp. moy.: 15.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6492, 3.5056]));
+
+        L.marker([43.4679, 1.9975], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Revel</h3><p>Population: 9 762</p><p>Distance: 109.2 km</p><p>Proche de: Rodez</p><p>Altitude: 206.0m</p><p>Temp. moy.: 14.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4679, 1.9975]));
+
+        L.marker([43.8529, 1.3714], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Fronton</h3><p>Population: 6 671</p><p>Distance: 111.0 km</p><p>Proche de: Rodez</p><p>Altitude: 148.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.8529, 1.3714]));
+
+        L.marker([43.6416, 3.5661], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Gignac</h3><p>Population: 6 651</p><p>Distance: 112.8 km</p><p>Proche de: Rodez</p><p>Altitude: 101.0m</p><p>Temp. moy.: 15.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6416, 3.5661]));
+
+        L.marker([43.3971, 3.0923], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Cazouls-lès-Béziers</h3><p>Population: 5 261</p><p>Distance: 114.9 km</p><p>Proche de: Rodez</p><p>Altitude: 108.0m</p><p>Temp. moy.: 16.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.3971, 3.0923]));
+
+        L.marker([43.6641, 1.5016], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Jean</h3><p>Population: 11 261</p><p>Distance: 115.2 km</p><p>Proche de: Rodez</p><p>Altitude: 205.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6641, 1.5016]));
+
+        L.marker([43.9623, 1.2363], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Montech</h3><p>Population: 6 663</p><p>Distance: 115.2 km</p><p>Proche de: Rodez</p><p>Altitude: 106.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.9623, 1.2363]));
+
+        L.marker([43.7956, 1.3516], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Castelnau-d\'Estrétefonds</h3><p>Population: 7 003</p><p>Distance: 115.7 km</p><p>Proche de: Rodez</p><p>Altitude: 192.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7956, 1.3516]));
+
+        L.marker([43.7258, 1.4105], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Bruguières</h3><p>Population: 6 202</p><p>Distance: 116.4 km</p><p>Proche de: Rodez</p><p>Altitude: 132.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7258, 1.4105]));
+
+        L.marker([43.698, 1.4349], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Castelginest</h3><p>Population: 11 271</p><p>Distance: 116.8 km</p><p>Proche de: Rodez</p><p>Altitude: 132.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.698, 1.4349]));
+
+        L.marker([43.6515, 1.483], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>L\'Union</h3><p>Population: 12 638</p><p>Distance: 117.2 km</p><p>Proche de: Rodez</p><p>Altitude: 140.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6515, 1.483]));
+
+        L.marker([43.6668, 1.4579], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Launaguet</h3><p>Population: 9 173</p><p>Distance: 117.6 km</p><p>Proche de: Rodez</p><p>Altitude: 132.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6668, 1.4579]));
+
+        L.marker([43.6955, 1.4133], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Alban</h3><p>Population: 6 534</p><p>Distance: 118.3 km</p><p>Proche de: Rodez</p><p>Altitude: 128.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6955, 1.4133]));
+
+        L.marker([43.7398, 1.3539], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Jory</h3><p>Population: 8 662</p><p>Distance: 119.1 km</p><p>Proche de: Rodez</p><p>Altitude: 113.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7398, 1.3539]));
+
+        L.marker([43.6108, 1.5037], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Balma</h3><p>Population: 17 772</p><p>Distance: 119.2 km</p><p>Proche de: Rodez</p><p>Altitude: 158.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6108, 1.5037]));
+
+        L.marker([45.2685, 1.7663], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Tulle</h3><p>Population: 13 401</p><p>Distance: 119.3 km</p><p>Proche de: Rodez</p><p>Altitude: 290.0m</p><p>Temp. moy.: 13.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([45.2685, 1.7663]));
+
+        L.marker([43.6714, 1.4243], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Aucamville</h3><p>Population: 9 623</p><p>Distance: 119.3 km</p><p>Proche de: Rodez</p><p>Altitude: 132.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6714, 1.4243]));
+
+        L.marker([45.1797, 1.5936], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Malemort</h3><p>Population: 8 239</p><p>Distance: 119.4 km</p><p>Proche de: Rodez</p><p>Altitude: 121.0m</p><p>Temp. moy.: 14.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([45.1797, 1.5936]));
+
+        L.marker([43.5806, 1.5372], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Quint-Fonsegrives</h3><p>Population: 6 133</p><p>Distance: 119.7 km</p><p>Proche de: Rodez</p><p>Altitude: 154.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5806, 1.5372]));
+
+        L.marker([44.1219, 1.1002], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Moissac</h3><p>Population: 13 419</p><p>Distance: 120.0 km</p><p>Proche de: Rodez</p><p>Altitude: 92.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.1219, 1.1002]));
+
+        L.marker([43.6864, 1.3897], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Fenouillet</h3><p>Population: 5 784</p><p>Distance: 120.4 km</p><p>Proche de: Rodez</p><p>Altitude: 124.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6864, 1.3897]));
+
+        L.marker([44.0536, 1.1211], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Castelsarrasin</h3><p>Population: 14 343</p><p>Distance: 120.4 km</p><p>Proche de: Rodez</p><p>Altitude: 84.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.0536, 1.1211]));
+
+        L.marker([43.4121, 3.3017], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Servian</h3><p>Population: 5 517</p><p>Distance: 120.5 km</p><p>Proche de: Rodez</p><p>Altitude: 61.0m</p><p>Temp. moy.: 15.9°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4121, 3.3017]));
+
+        L.marker([43.4616, 3.418], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Pézenas</h3><p>Population: 7 797</p><p>Distance: 120.7 km</p><p>Proche de: Rodez</p><p>Altitude: 28.0m</p><p>Temp. moy.: 15.9°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4616, 3.418]));
+
+        L.marker([43.555, 1.5332], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Orens-de-Gameville</h3><p>Population: 14 646</p><p>Distance: 122.0 km</p><p>Proche de: Rodez</p><p>Altitude: 200.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.555, 1.5332]));
+
+        L.marker([43.7702, 1.2791], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Grenade</h3><p>Population: 9 062</p><p>Distance: 122.2 km</p><p>Proche de: Rodez</p><p>Altitude: 107.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7702, 1.2791]));
+
+        L.marker([45.2968, 3.3847], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Brioude</h3><p>Population: 6 527</p><p>Distance: 122.5 km</p><p>Proche de: Rodez</p><p>Altitude: 427.0m</p><p>Temp. moy.: 12.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([45.2968, 3.3847]));
+
+        L.marker([43.668, 1.3753], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Beauzelle</h3><p>Population: 8 713</p><p>Distance: 122.6 km</p><p>Proche de: Rodez</p><p>Altitude: 143.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.668, 1.3753]));
+
+        L.marker([44.083, 4.0682], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Christol-lez-Alès</h3><p>Population: 7 310</p><p>Distance: 123.3 km</p><p>Proche de: Rodez</p><p>Altitude: 142.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.083, 4.0682]));
+
+        L.marker([43.5201, 1.5528], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Escalquens</h3><p>Population: 6 924</p><p>Distance: 123.8 km</p><p>Proche de: Rodez</p><p>Altitude: 166.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5201, 1.5528]));
+
+        L.marker([43.6897, 3.81], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Gély-du-Fesc</h3><p>Population: 10 472</p><p>Distance: 124.0 km</p><p>Proche de: Rodez</p><p>Altitude: 112.0m</p><p>Temp. moy.: 15.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6897, 3.81]));
+
+        L.marker([44.906, 1.1994], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Sarlat-la-Canéda</h3><p>Population: 8 763</p><p>Distance: 124.3 km</p><p>Proche de: Rodez</p><p>Altitude: 206.0m</p><p>Temp. moy.: 14.1°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.906, 1.1994]));
+
+        L.marker([43.7227, 1.2916], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Merville</h3><p>Population: 6 760</p><p>Distance: 124.3 km</p><p>Proche de: Rodez</p><p>Altitude: 160.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7227, 1.2916]));
+
+        L.marker([43.641, 1.377], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Blagnac</h3><p>Population: 27 604</p><p>Distance: 124.4 km</p><p>Proche de: Rodez</p><p>Altitude: 148.0m</p><p>Temp. moy.: 14.8°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.641, 1.377]));
+
+        L.marker([43.6841, 1.3278], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Aussonne</h3><p>Population: 7 997</p><p>Distance: 124.5 km</p><p>Proche de: Rodez</p><p>Altitude: 144.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6841, 1.3278]));
+
+        L.marker([45.1461, 1.4345], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Pantaléon-de-Larche</h3><p>Population: 5 091</p><p>Distance: 125.3 km</p><p>Proche de: Rodez</p><p>Altitude: 157.0m</p><p>Temp. moy.: 13.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([45.1461, 1.4345]));
+
+        L.marker([43.3201, 1.9613], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Castelnaudary</h3><p>Population: 12 151</p><p>Distance: 125.4 km</p><p>Proche de: Rodez</p><p>Altitude: 163.0m</p><p>Temp. moy.: 14.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.3201, 1.9613]));
+
+        L.marker([43.6503, 3.7894], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Grabels</h3><p>Population: 9 092</p><p>Distance: 125.4 km</p><p>Proche de: Rodez</p><p>Altitude: 64.0m</p><p>Temp. moy.: 15.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6503, 3.7894]));
+
+        L.marker([43.5438, 1.4784], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Ramonville-Saint-Agne</h3><p>Population: 15 158</p><p>Distance: 125.9 km</p><p>Proche de: Rodez</p><p>Altitude: 161.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5438, 1.4784]));
+
+        L.marker([43.4065, 1.7185], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Villefranche-de-Lauragais</h3><p>Population: 5 072</p><p>Distance: 126.0 km</p><p>Proche de: Rodez</p><p>Altitude: 188.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4065, 1.7185]));
+
+        L.marker([43.5712, 3.7072], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Cournonterral</h3><p>Population: 7 359</p><p>Distance: 126.3 km</p><p>Proche de: Rodez</p><p>Altitude: 58.0m</p><p>Temp. moy.: 15.8°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5712, 3.7072]));
+
+        L.marker([43.7079, 3.8648], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Prades-le-Lez</h3><p>Population: 6 184</p><p>Distance: 126.3 km</p><p>Proche de: Rodez</p><p>Altitude: 72.0m</p><p>Temp. moy.: 15.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7079, 3.8648]));
+
+        L.marker([44.1411, 4.1297], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Privat-des-Vieux</h3><p>Population: 5 703</p><p>Distance: 126.6 km</p><p>Proche de: Rodez</p><p>Altitude: 179.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.1411, 4.1297]));
+
+        L.marker([43.6831, 3.8447], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Clément-de-Rivière</h3><p>Population: 5 218</p><p>Distance: 126.6 km</p><p>Proche de: Rodez</p><p>Altitude: 111.0m</p><p>Temp. moy.: 15.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6831, 3.8447]));
+
+        L.marker([43.6167, 3.775], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Georges-d\'Orques</h3><p>Population: 5 676</p><p>Distance: 126.9 km</p><p>Proche de: Rodez</p><p>Altitude: 102.0m</p><p>Temp. moy.: 15.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6167, 3.775]));
+
+        L.marker([43.5083, 1.5069], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Castanet-Tolosan</h3><p>Population: 15 317</p><p>Distance: 127.3 km</p><p>Proche de: Rodez</p><p>Altitude: 159.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5083, 1.5069]));
+
+        L.marker([43.649, 1.3197], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Cornebarrieu</h3><p>Population: 8 978</p><p>Distance: 127.4 km</p><p>Proche de: Rodez</p><p>Altitude: 145.0m</p><p>Temp. moy.: 14.8°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.649, 1.3197]));
+
+        L.marker([43.5819, 3.742], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Pignan</h3><p>Population: 8 431</p><p>Distance: 127.5 km</p><p>Proche de: Rodez</p><p>Altitude: 92.0m</p><p>Temp. moy.: 15.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5819, 3.742]));
+
+        L.marker([43.6173, 3.7908], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Juvignac</h3><p>Population: 14 055</p><p>Distance: 127.8 km</p><p>Proche de: Rodez</p><p>Altitude: 73.0m</p><p>Temp. moy.: 15.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6173, 3.7908]));
+
+        L.marker([43.209, 2.4653], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Trèbes</h3><p>Population: 5 361</p><p>Distance: 128.2 km</p><p>Proche de: Rodez</p><p>Altitude: 119.0m</p><p>Temp. moy.: 15.8°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.209, 2.4653]));
+
+        L.marker([45.0283, 3.8973], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Le Puy-en-Velay</h3><p>Population: 18 540</p><p>Distance: 128.6 km</p><p>Proche de: Rodez</p><p>Altitude: 790.0m</p><p>Temp. moy.: 10.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([45.0283, 3.8973]));
+
+        L.marker([43.6691, 1.2735], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Mondonville</h3><p>Population: 6 060</p><p>Distance: 129.0 km</p><p>Proche de: Rodez</p><p>Altitude: 181.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6691, 1.2735]));
+
+        L.marker([43.4976, 3.6623], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Poussan</h3><p>Population: 6 797</p><p>Distance: 129.7 km</p><p>Proche de: Rodez</p><p>Altitude: 45.0m</p><p>Temp. moy.: 16.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4976, 3.6623]));
+
+        L.marker([43.2458, 3.062], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Coursan</h3><p>Population: 5 737</p><p>Distance: 129.9 km</p><p>Proche de: Rodez</p><p>Altitude: 4.0m</p><p>Temp. moy.: 16.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.2458, 3.062]));
+
+        L.marker([43.1983, 2.7649], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Lézignan-Corbières</h3><p>Population: 10 343</p><p>Distance: 130.0 km</p><p>Proche de: Rodez</p><p>Altitude: 51.0m</p><p>Temp. moy.: 16.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.1983, 2.7649]));
+
+        L.marker([43.382, 3.4617], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Florensac</h3><p>Population: 5 254</p><p>Distance: 130.1 km</p><p>Proche de: Rodez</p><p>Altitude: 9.0m</p><p>Temp. moy.: 16.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.382, 3.4617]));
+
+        L.marker([43.3566, 3.4141], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Bessan</h3><p>Population: 5 838</p><p>Distance: 130.4 km</p><p>Proche de: Rodez</p><p>Altitude: 9.0m</p><p>Temp. moy.: 16.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.3566, 3.4141]));
+
+        L.marker([43.666, 3.8848], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Clapiers</h3><p>Population: 6 006</p><p>Distance: 130.4 km</p><p>Proche de: Rodez</p><p>Altitude: 79.0m</p><p>Temp. moy.: 15.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.666, 3.8848]));
+
+        L.marker([45.118, 1.3022], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Terrasson-Lavilledieu</h3><p>Population: 6 218</p><p>Distance: 130.9 km</p><p>Proche de: Rodez</p><p>Altitude: 227.0m</p><p>Temp. moy.: 13.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([45.118, 1.3022]));
+
+        L.marker([43.2885, 3.2541], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Sauvian</h3><p>Population: 5 608</p><p>Distance: 131.1 km</p><p>Proche de: Rodez</p><p>Altitude: 14.0m</p><p>Temp. moy.: 16.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.2885, 3.2541]));
+
+        L.marker([43.4323, 3.5843], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Mèze</h3><p>Population: 12 669</p><p>Distance: 131.2 km</p><p>Proche de: Rodez</p><p>Altitude: 5.0m</p><p>Temp. moy.: 16.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4323, 3.5843]));
+
+        L.marker([43.5285, 1.3995], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Portet-sur-Garonne</h3><p>Population: 9 782</p><p>Distance: 131.6 km</p><p>Proche de: Rodez</p><p>Altitude: 155.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5285, 1.3995]));
+
+        L.marker([43.5747, 1.3338], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Tournefeuille</h3><p>Population: 30 168</p><p>Distance: 131.9 km</p><p>Proche de: Rodez</p><p>Altitude: 155.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5747, 1.3338]));
+
+        L.marker([43.6648, 3.9138], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Jacou</h3><p>Population: 6 924</p><p>Distance: 132.3 km</p><p>Proche de: Rodez</p><p>Altitude: 50.0m</p><p>Temp. moy.: 15.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6648, 3.9138]));
+
+        L.marker([43.6245, 1.2584], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Pibrac</h3><p>Population: 8 977</p><p>Distance: 133.0 km</p><p>Proche de: Rodez</p><p>Altitude: 190.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6245, 1.2584]));
+
+        L.marker([43.5312, 3.7737], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Fabrègues</h3><p>Population: 7 447</p><p>Distance: 133.3 km</p><p>Proche de: Rodez</p><p>Altitude: 60.0m</p><p>Temp. moy.: 15.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5312, 3.7737]));
+
+        L.marker([43.4953, 3.7242], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Gigean</h3><p>Population: 6 639</p><p>Distance: 133.3 km</p><p>Proche de: Rodez</p><p>Altitude: 76.0m</p><p>Temp. moy.: 16.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4953, 3.7242]));
+
+        L.marker([43.5446, 1.3432], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Cugnaux</h3><p>Population: 20 662</p><p>Distance: 133.6 km</p><p>Proche de: Rodez</p><p>Altitude: 166.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5446, 1.3432]));
+
+        L.marker([43.5732, 3.8329], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Jean-de-Védas</h3><p>Population: 13 328</p><p>Distance: 133.6 km</p><p>Proche de: Rodez</p><p>Altitude: 35.0m</p><p>Temp. moy.: 15.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5732, 3.8329]));
+
+        L.marker([43.6372, 3.9113], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Castelnau-le-Lez</h3><p>Population: 26 058</p><p>Distance: 134.0 km</p><p>Proche de: Rodez</p><p>Altitude: 46.0m</p><p>Temp. moy.: 15.9°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6372, 3.9113]));
+
+        L.marker([43.3091, 3.3948], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Vias</h3><p>Population: 5 952</p><p>Distance: 134.2 km</p><p>Proche de: Rodez</p><p>Altitude: 3.0m</p><p>Temp. moy.: 16.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.3091, 3.3948]));
+
+        L.marker([43.6513, 3.9343], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Le Crès</h3><p>Population: 9 226</p><p>Distance: 134.5 km</p><p>Proche de: Rodez</p><p>Altitude: 70.0m</p><p>Temp. moy.: 15.9°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6513, 3.9343]));
+
+        L.marker([43.271, 3.3011], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Sérignan</h3><p>Population: 8 588</p><p>Distance: 134.5 km</p><p>Proche de: Rodez</p><p>Altitude: 1.0m</p><p>Temp. moy.: 16.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.271, 3.3011]));
+
+        L.marker([45.5537, 2.294], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Ussel</h3><p>Population: 9 187</p><p>Distance: 134.6 km</p><p>Proche de: Rodez</p><p>Altitude: 629.0m</p><p>Temp. moy.: 11.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([45.5537, 2.294]));
+
+        L.marker([43.5273, 1.3447], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Villeneuve-Tolosane</h3><p>Population: 11 044</p><p>Distance: 134.8 km</p><p>Proche de: Rodez</p><p>Altitude: 171.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5273, 1.3447]));
+
+        L.marker([43.6905, 3.9853], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Castries</h3><p>Population: 6 883</p><p>Distance: 135.4 km</p><p>Proche de: Rodez</p><p>Altitude: 59.0m</p><p>Temp. moy.: 15.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6905, 3.9853]));
+
+        L.marker([43.4476, 3.6922], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Balaruc-les-Bains</h3><p>Population: 7 139</p><p>Distance: 135.5 km</p><p>Proche de: Rodez</p><p>Altitude: 4.0m</p><p>Temp. moy.: 16.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4476, 3.6922]));
+
+        L.marker([43.507, 1.3576], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Roques</h3><p>Population: 5 436</p><p>Distance: 135.6 km</p><p>Proche de: Rodez</p><p>Altitude: 163.0m</p><p>Temp. moy.: 14.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.507, 1.3576]));
+
+        L.marker([44.1064, 0.9043], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Valence</h3><p>Population: 5 289</p><p>Distance: 135.6 km</p><p>Proche de: Rodez</p><p>Altitude: 68.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.1064, 0.9043]));
+
+        L.marker([43.5626, 1.2833], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Plaisance-du-Touch</h3><p>Population: 21 079</p><p>Distance: 135.8 km</p><p>Proche de: Rodez</p><p>Altitude: 171.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5626, 1.2833]));
+
+        L.marker([43.5768, 1.2655], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>La Salvetat-Saint-Gilles</h3><p>Population: 8 511</p><p>Distance: 135.9 km</p><p>Proche de: Rodez</p><p>Altitude: 179.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5768, 1.2655]));
+
+        L.marker([43.6624, 3.9657], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Vendargues</h3><p>Population: 7 262</p><p>Distance: 135.9 km</p><p>Proche de: Rodez</p><p>Altitude: 46.0m</p><p>Temp. moy.: 15.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6624, 3.9657]));
+
+        L.marker([43.5928, 1.2353], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Léguevin</h3><p>Population: 9 945</p><p>Distance: 136.6 km</p><p>Proche de: Rodez</p><p>Altitude: 200.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5928, 1.2353]));
+
+        L.marker([43.3543, 3.556], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Marseillan</h3><p>Population: 8 414</p><p>Distance: 136.9 km</p><p>Proche de: Rodez</p><p>Altitude: -2.0m</p><p>Temp. moy.: 16.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.3543, 3.556]));
+
+        L.marker([43.5218, 1.3125], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Frouzins</h3><p>Population: 9 805</p><p>Distance: 137.1 km</p><p>Proche de: Rodez</p><p>Altitude: 173.0m</p><p>Temp. moy.: 14.7°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5218, 1.3125]));
+
+        L.marker([43.4589, 1.3995], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Labarthe-sur-Lèze</h3><p>Population: 6 585</p><p>Distance: 137.1 km</p><p>Proche de: Rodez</p><p>Altitude: 168.0m</p><p>Temp. moy.: 14.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4589, 1.3995]));
+
+        L.marker([43.7706, 4.0812], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Sommières</h3><p>Population: 5 073</p><p>Distance: 137.3 km</p><p>Proche de: Rodez</p><p>Altitude: 26.0m</p><p>Temp. moy.: 15.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7706, 4.0812]));
+
+        L.marker([43.3084, 3.4838], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Agde</h3><p>Population: 29 939</p><p>Distance: 137.9 km</p><p>Proche de: Rodez</p><p>Altitude: 19.0m</p><p>Temp. moy.: 16.5°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.3084, 3.4838]));
+
+        L.marker([43.567, 3.899], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Lattes</h3><p>Population: 17 351</p><p>Distance: 138.1 km</p><p>Proche de: Rodez</p><p>Altitude: 2.0m</p><p>Temp. moy.: 16.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.567, 3.899]));
+
+        L.marker([43.4486, 3.7493], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Frontignan</h3><p>Population: 24 136</p><p>Distance: 138.5 km</p><p>Proche de: Rodez</p><p>Altitude: 10.0m</p><p>Temp. moy.: 16.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4486, 3.7493]));
+
+        L.marker([43.6565, 4.0102], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Baillargues</h3><p>Population: 7 829</p><p>Distance: 139.2 km</p><p>Proche de: Rodez</p><p>Altitude: 27.0m</p><p>Temp. moy.: 16.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6565, 4.0102]));
+
+        L.marker([43.5119, 3.8589], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Villeneuve-lès-Maguelone</h3><p>Population: 10 872</p><p>Distance: 139.7 km</p><p>Proche de: Rodez</p><p>Altitude: 3.0m</p><p>Temp. moy.: 16.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5119, 3.8589]));
+
+        L.marker([43.5332, 1.2429], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Fonsorbes</h3><p>Population: 12 954</p><p>Distance: 140.4 km</p><p>Proche de: Rodez</p><p>Altitude: 175.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5332, 1.2429]));
+
+        L.marker([43.4971, 1.2822], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Seysses</h3><p>Population: 10 539</p><p>Distance: 140.8 km</p><p>Proche de: Rodez</p><p>Altitude: 176.0m</p><p>Temp. moy.: 14.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4971, 1.2822]));
+
+        L.marker([43.3579, 1.4822], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Auterive</h3><p>Population: 10 456</p><p>Distance: 141.4 km</p><p>Proche de: Rodez</p><p>Altitude: 203.0m</p><p>Temp. moy.: 14.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.3579, 1.4822]));
+
+        L.marker([43.5524, 1.2048], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Fontenilles</h3><p>Population: 5 906</p><p>Distance: 141.4 km</p><p>Proche de: Rodez</p><p>Altitude: 192.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5524, 1.2048]));
+
+        L.marker([43.4324, 1.3543], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Eaunes</h3><p>Population: 6 539</p><p>Distance: 141.8 km</p><p>Proche de: Rodez</p><p>Altitude: 208.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4324, 1.3543]));
+
+        L.marker([43.5609, 3.9512], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Pérols</h3><p>Population: 9 615</p><p>Distance: 141.8 km</p><p>Proche de: Rodez</p><p>Altitude: 5.0m</p><p>Temp. moy.: 16.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5609, 3.9512]));
+
+        L.marker([45.5442, 3.2444], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Issoire</h3><p>Population: 15 115</p><p>Distance: 142.1 km</p><p>Proche de: Rodez</p><p>Altitude: 394.0m</p><p>Temp. moy.: 12.9°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([45.5442, 3.2444]));
+
+        L.marker([43.5323, 3.9346], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Palavas-les-Flots</h3><p>Population: 6 133</p><p>Distance: 142.8 km</p><p>Proche de: Rodez</p><p>Altitude: 3.0m</p><p>Temp. moy.: 16.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5323, 3.9346]));
+
+        L.marker([43.5915, 4.0128], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Mauguio</h3><p>Population: 16 522</p><p>Distance: 143.6 km</p><p>Proche de: Rodez</p><p>Altitude: 1.0m</p><p>Temp. moy.: 16.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5915, 4.0128]));
+
+        L.marker([43.7853, 4.189], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Calvisson</h3><p>Population: 6 486</p><p>Distance: 144.2 km</p><p>Proche de: Rodez</p><p>Altitude: 75.0m</p><p>Temp. moy.: 15.8°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.7853, 4.189]));
+
+        L.marker([43.4407, 1.2987], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Muret</h3><p>Population: 26 079</p><p>Distance: 144.2 km</p><p>Proche de: Rodez</p><p>Altitude: 175.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.4407, 1.2987]));
+
+        L.marker([43.5106, 1.2023], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Saint-Lys</h3><p>Population: 9 892</p><p>Distance: 144.5 km</p><p>Proche de: Rodez</p><p>Altitude: 213.0m</p><p>Temp. moy.: 14.2°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.5106, 1.2023]));
+
+        L.marker([43.6159, 1.0826], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>L\'Isle-Jourdain</h3><p>Population: 9 537</p><p>Distance: 144.9 km</p><p>Proche de: Rodez</p><p>Altitude: 149.0m</p><p>Temp. moy.: 14.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6159, 1.0826]));
+
+        L.marker([44.4183, 0.7484], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Villeneuve-sur-Lot</h3><p>Population: 22 350</p><p>Distance: 144.9 km</p><p>Proche de: Rodez</p><p>Altitude: 90.0m</p><p>Temp. moy.: 14.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.4183, 0.7484]));
+
+        L.marker([43.1042, 3.0871], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Gruissan</h3><p>Population: 5 032</p><p>Distance: 145.6 km</p><p>Proche de: Rodez</p><p>Altitude: 3.0m</p><p>Temp. moy.: 16.4°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.1042, 3.0871]));
+
+        L.marker([43.678, 4.1329], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Lunel</h3><p>Population: 26 623</p><p>Distance: 146.1 km</p><p>Proche de: Rodez</p><p>Altitude: 11.0m</p><p>Temp. moy.: 15.9°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.678, 4.1329]));
+
+        L.marker([44.6107, 4.3942], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Aubenas</h3><p>Population: 12 416</p><p>Distance: 147.4 km</p><p>Proche de: Rodez</p><p>Altitude: 228.0m</p><p>Temp. moy.: 14.6°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([44.6107, 4.3942]));
+
+        L.marker([43.0464, 2.2452], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Limoux</h3><p>Population: 10 532</p><p>Distance: 148.3 km</p><p>Proche de: Rodez</p><p>Altitude: 207.0m</p><p>Temp. moy.: 15.0°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.0464, 2.2452]));
+
+        L.marker([43.6376, 4.1346], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>Marsillargues</h3><p>Population: 6 988</p><p>Distance: 148.7 km</p><p>Proche de: Rodez</p><p>Altitude: -1.0m</p><p>Temp. moy.: 16.3°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.6376, 4.1346]));
+
+        L.marker([43.571, 4.072], {icon: blueIcon})
+            .bindPopup('<div class="city-popup"><h3>La Grande-Motte</h3><p>Population: 8 440</p><p>Distance: 148.8 km</p><p>Proche de: Rodez</p><p>Altitude: 1.0m</p><p>Temp. moy.: 16.1°C</p></div>')
+            .addTo(map);
+        markers.push(L.marker([43.571, 4.072]));
+
+        // Ajuster la vue pour afficher tous les marqueurs
+        if (markers.length > 0) {
+            var group = new L.featureGroup(markers);
+            map.fitBounds(group.getBounds().pad(0.1));
+        }
+    </script>
+</body>
+</html>

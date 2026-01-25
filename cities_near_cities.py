@@ -11,7 +11,7 @@ class CitySearchApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Recherche de villes à proximité")
-        self.root.geometry("900x700")
+        self.root.geometry("1100x1000")
         
         # Coordonnées des villes prédéfinies
         self.city_coordinates = {
@@ -87,22 +87,68 @@ class CitySearchApp:
         ref_frame = ttk.LabelFrame(main_frame, text="Villes de référence", padding="10")
         ref_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=10)
         
-        # Liste des villes de référence
-        self.cities_listbox = tk.Listbox(ref_frame, height=4)
-        self.cities_listbox.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E), padx=5)
+        # Frame pour la liste et les infos
+        list_info_frame = ttk.Frame(ref_frame)
+        list_info_frame.grid(row=0, column=0, columnspan=3, sticky=(tk.W, tk.E))
+        
+        # Colonne gauche: liste des villes
+        left_col = ttk.Frame(list_info_frame)
+        left_col.grid(row=0, column=0, sticky=(tk.W, tk.N, tk.S), padx=5)
+        
+        ttk.Label(left_col, text="Villes sélectionnées:", font=('Arial', 9, 'bold')).pack(anchor=tk.W, pady=(0,5))
+        
+        self.cities_listbox = tk.Listbox(left_col, height=6, width=25)
+        self.cities_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.cities_listbox.bind('<<ListboxSelect>>', self.on_city_select)
+        
+        cities_scroll = ttk.Scrollbar(left_col, orient='vertical', command=self.cities_listbox.yview)
+        cities_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.cities_listbox.config(yscrollcommand=cities_scroll.set)
+        
+        # Colonne droite: infos de la ville sélectionnée
+        right_col = ttk.LabelFrame(list_info_frame, text="Informations", padding="10")
+        right_col.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N, tk.S), padx=5)
+        
+        self.info_ville = tk.StringVar(value="Aucune ville sélectionnée")
+        self.info_coords = tk.StringVar(value="")
+        self.info_region = tk.StringVar(value="")
+        
+        ttk.Label(right_col, textvariable=self.info_ville, font=('Arial', 10, 'bold')).grid(row=0, column=0, sticky=tk.W, pady=2)
+        ttk.Label(right_col, textvariable=self.info_coords, foreground='#555').grid(row=1, column=0, sticky=tk.W, pady=2)
+        ttk.Label(right_col, textvariable=self.info_region, foreground='#555').grid(row=2, column=0, sticky=tk.W, pady=2)
+        
         self.update_cities_listbox()
         
-        # Dropdown pour ajouter une ville
+        # Frame pour les actions
+        action_frame = ttk.Frame(ref_frame)
+        action_frame.grid(row=1, column=0, columnspan=3, pady=(10, 0))
+        
+        # Méthode 1: Sélectionner depuis la liste prédéfinie
+        select_frame = ttk.LabelFrame(action_frame, text="Ajouter depuis la liste", padding="5")
+        select_frame.grid(row=0, column=0, padx=5, sticky=(tk.W, tk.E, tk.N))
+        
         self.city_var = tk.StringVar()
-        city_combo = ttk.Combobox(ref_frame, textvariable=self.city_var, 
-                                  values=list(self.city_coordinates.keys()), width=20)
-        city_combo.grid(row=1, column=0, padx=5, pady=5)
+        city_combo = ttk.Combobox(select_frame, textvariable=self.city_var, 
+                                  values=sorted(list(self.city_coordinates.keys())), width=20)
+        city_combo.grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(select_frame, text="➕ Ajouter", command=self.add_city).grid(row=0, column=1, padx=5, pady=5)
         
-        add_btn = ttk.Button(ref_frame, text="Ajouter", command=self.add_city)
-        add_btn.grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
+        # Méthode 2: Rechercher une ville
+        search_frame = ttk.LabelFrame(action_frame, text="Rechercher une ville", padding="5")
+        search_frame.grid(row=0, column=1, padx=5, sticky=(tk.W, tk.E, tk.N))
         
-        remove_btn = ttk.Button(ref_frame, text="Retirer sélection", command=self.remove_city)
-        remove_btn.grid(row=1, column=2, padx=5, pady=5)
+        self.search_city_var = tk.StringVar()
+        ttk.Entry(search_frame, textvariable=self.search_city_var, width=20).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(search_frame, text="🔍 Rechercher", command=self.search_and_add_city).grid(row=0, column=1, padx=5, pady=5)
+        
+        # Méthode 3: Ajouter manuellement avec coordonnées
+        manual_frame = ttk.LabelFrame(action_frame, text="Ajouter manuellement", padding="5")
+        manual_frame.grid(row=0, column=2, padx=5, sticky=(tk.W, tk.E, tk.N))
+        
+        ttk.Button(manual_frame, text="✏️ Coordonnées GPS", command=self.add_city_with_coords).grid(row=0, column=0, padx=5, pady=5)
+        
+        # Bouton retirer
+        ttk.Button(ref_frame, text="🗑️ Retirer la sélection", command=self.remove_city).grid(row=2, column=0, columnspan=3, pady=(10, 0))
         
         # Section paramètres
         param_frame = ttk.LabelFrame(main_frame, text="Paramètres de recherche", padding="10")
@@ -145,6 +191,10 @@ class CitySearchApp:
         ttk.Checkbutton(options_frame, text="Récupérer la température moyenne (API Open-Meteo)", 
                        variable=self.fetch_temperature).grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
         
+        self.show_search_zones = tk.BooleanVar(value=True)
+        ttk.Checkbutton(options_frame, text="Afficher les zones de recherche sur la carte", 
+                       variable=self.show_search_zones).grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
+        
         # Bouton rechercher
         search_btn = ttk.Button(main_frame, text="🔍 Rechercher", command=self.search_cities)
         search_btn.grid(row=4, column=0, columnspan=3, pady=10)
@@ -166,9 +216,20 @@ class CitySearchApp:
         self.result_label = ttk.Label(main_frame, text="", font=('Arial', 10, 'bold'))
         self.result_label.grid(row=6, column=0, columnspan=3, pady=5)
         
+        # Fenêtre de logs
+        log_frame = ttk.LabelFrame(main_frame, text="Logs", padding="5")
+        log_frame.grid(row=7, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
+        
+        self.log_text = tk.Text(log_frame, height=5, wrap=tk.WORD, state='disabled')
+        self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        log_scroll = ttk.Scrollbar(log_frame, orient='vertical', command=self.log_text.yview)
+        log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.log_text.config(yscrollcommand=log_scroll.set)
+        
         # Tableau des résultats
         result_frame = ttk.Frame(main_frame)
-        result_frame.grid(row=7, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
+        result_frame.grid(row=8, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
         
         # Scrollbars
         vsb = ttk.Scrollbar(result_frame, orient="vertical")
@@ -202,11 +263,19 @@ class CitySearchApp:
         vsb.grid(row=0, column=1, sticky=(tk.N, tk.S))
         hsb.grid(row=1, column=0, sticky=(tk.W, tk.E))
         
+        # Boutons d'édition du tableau
+        edit_frame = ttk.Frame(main_frame)
+        edit_frame.grid(row=9, column=0, columnspan=3, pady=5)
+        
+        ttk.Button(edit_frame, text="✏️ Modifier", command=self.edit_selected).grid(row=0, column=0, padx=5)
+        ttk.Button(edit_frame, text="🗑️ Supprimer", command=self.delete_selected).grid(row=0, column=1, padx=5)
+        ttk.Button(edit_frame, text="➕ Ajouter", command=self.add_city_manual).grid(row=0, column=2, padx=5)
+        
         # Configuration du redimensionnement
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
-        main_frame.rowconfigure(7, weight=1)
+        main_frame.rowconfigure(8, weight=1)
         result_frame.columnconfigure(0, weight=1)
         result_frame.rowconfigure(0, weight=1)
     
@@ -215,12 +284,160 @@ class CitySearchApp:
         for city in self.reference_cities:
             self.cities_listbox.insert(tk.END, city)
     
+    def on_city_select(self, event):
+        """Afficher les infos de la ville sélectionnée"""
+        selection = self.cities_listbox.curselection()
+        if selection:
+            city_name = self.cities_listbox.get(selection[0])
+            coords = self.city_coordinates.get(city_name)
+            if coords:
+                self.info_ville.set(f"📍 {city_name}")
+                self.info_coords.set(f"Coordonnées: {coords['lat']:.4f}°N, {coords['lon']:.4f}°E")
+                
+                # Déterminer la région approximative
+                region = self.get_region_from_coords(coords['lat'], coords['lon'])
+                self.info_region.set(f"Région: {region}")
+            else:
+                self.info_ville.set(f"📍 {city_name}")
+                self.info_coords.set("Coordonnées non disponibles")
+                self.info_region.set("")
+    
+    def get_region_from_coords(self, lat, lon):
+        """Déterminer une région approximative depuis les coordonnées"""
+        if lat > 48.5:
+            if lon < 2:
+                return "Nord-Ouest"
+            elif lon < 5:
+                return "Nord"
+            else:
+                return "Nord-Est"
+        elif lat > 45.5:
+            if lon < 0:
+                return "Ouest"
+            elif lon < 3:
+                return "Centre-Ouest"
+            elif lon < 6:
+                return "Centre"
+            else:
+                return "Est"
+        else:
+            if lon < 0:
+                return "Sud-Ouest"
+            elif lon < 3:
+                return "Sud-Ouest / Pyrénées"
+            elif lon < 6:
+                return "Sud / Méditerranée"
+            else:
+                return "Sud-Est / PACA"
+    
+    def log(self, message):
+        """Ajoute un message dans la fenêtre de logs"""
+        self.log_text.config(state='normal')
+        self.log_text.insert(tk.END, f"{message}\n")
+        self.log_text.see(tk.END)
+        self.log_text.config(state='disabled')
+        self.root.update()
+    
     def add_city(self):
         city = self.city_var.get()
         if city and city not in self.reference_cities:
             self.reference_cities.append(city)
             self.update_cities_listbox()
+            self.log(f"✓ Ville '{city}' ajoutée aux villes de référence")
         self.city_var.set('')
+    
+    def search_and_add_city(self):
+        """Rechercher une ville via l'API et l'ajouter"""
+        city_name = self.search_city_var.get().strip()
+        if not city_name:
+            messagebox.showwarning("Attention", "Veuillez saisir un nom de ville")
+            return
+        
+        try:
+            self.log(f"Recherche de '{city_name}'...")
+            # Rechercher via l'API geo.gouv.fr
+            url = f"https://geo.api.gouv.fr/communes?nom={city_name}&fields=nom,centre,population&limit=1"
+            response = requests.get(url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data:
+                    ville = data[0]
+                    nom = ville['nom']
+                    coords = ville.get('centre', {}).get('coordinates', [])
+                    
+                    if coords:
+                        lon, lat = coords
+                        # Ajouter aux coordonnées disponibles
+                        self.city_coordinates[nom] = {'lat': lat, 'lon': lon}
+                        
+                        if nom not in self.reference_cities:
+                            self.reference_cities.append(nom)
+                            self.update_cities_listbox()
+                            self.log(f"✓ Ville '{nom}' trouvée et ajoutée (Lat: {lat:.4f}, Lon: {lon:.4f})")
+                            messagebox.showinfo("Succès", f"Ville '{nom}' ajoutée avec succès!")
+                        else:
+                            self.log(f"⚠ Ville '{nom}' déjà dans la liste")
+                    else:
+                        messagebox.showwarning("Erreur", "Coordonnées non disponibles pour cette ville")
+                        self.log(f"❌ Coordonnées non disponibles pour '{city_name}'")
+                else:
+                    messagebox.showwarning("Non trouvé", f"Aucune ville trouvée pour '{city_name}'")
+                    self.log(f"❌ Ville '{city_name}' non trouvée")
+            
+            self.search_city_var.set('')
+            
+        except Exception as e:
+            messagebox.showerror("Erreur", f"Erreur lors de la recherche:\n{str(e)}")
+            self.log(f"❌ Erreur recherche: {str(e)}")
+    
+    def add_city_with_coords(self):
+        """Ajouter une ville manuellement avec coordonnées GPS"""
+        coord_window = tk.Toplevel(self.root)
+        coord_window.title("Ajouter une ville avec coordonnées")
+        coord_window.geometry("400x200")
+        
+        ttk.Label(coord_window, text="Nom de la ville:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        name_var = tk.StringVar()
+        ttk.Entry(coord_window, textvariable=name_var, width=30).grid(row=0, column=1, padx=10, pady=10)
+        
+        ttk.Label(coord_window, text="Latitude (ex: 43.6108):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        lat_var = tk.StringVar()
+        ttk.Entry(coord_window, textvariable=lat_var, width=30).grid(row=1, column=1, padx=10, pady=10)
+        
+        ttk.Label(coord_window, text="Longitude (ex: 3.8767):").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        lon_var = tk.StringVar()
+        ttk.Entry(coord_window, textvariable=lon_var, width=30).grid(row=2, column=1, padx=10, pady=10)
+        
+        def save_coords():
+            try:
+                nom = name_var.get().strip()
+                lat = float(lat_var.get())
+                lon = float(lon_var.get())
+                
+                if not nom:
+                    messagebox.showwarning("Attention", "Veuillez saisir un nom de ville")
+                    return
+                
+                # Valider les coordonnées
+                if not (-90 <= lat <= 90) or not (-180 <= lon <= 180):
+                    messagebox.showerror("Erreur", "Coordonnées invalides")
+                    return
+                
+                # Ajouter la ville
+                self.city_coordinates[nom] = {'lat': lat, 'lon': lon}
+                if nom not in self.reference_cities:
+                    self.reference_cities.append(nom)
+                    self.update_cities_listbox()
+                    self.log(f"✓ Ville '{nom}' ajoutée manuellement (Lat: {lat:.4f}, Lon: {lon:.4f})")
+                    messagebox.showinfo("Succès", f"Ville '{nom}' ajoutée avec succès!")
+                
+                coord_window.destroy()
+                
+            except ValueError:
+                messagebox.showerror("Erreur", "Latitude et Longitude doivent être des nombres")
+        
+        ttk.Button(coord_window, text="✅ Ajouter", command=save_coords).grid(row=3, column=0, columnspan=2, pady=20)
     
     def remove_city(self):
         selection = self.cities_listbox.curselection()
@@ -278,10 +495,12 @@ class CitySearchApp:
             self.tree.delete(item)
         
         self.result_label.config(text="🔄 Recherche en cours...")
+        self.log("=== Début de la recherche ===")
         self.root.update()
         
         try:
             # Récupération des données
+            self.log(f"Récupération des communes depuis l'API...")
             url = "https://geo.api.gouv.fr/communes"
             params = {
                 'fields': 'nom,code,codesPostaux,population,centre',
@@ -292,12 +511,15 @@ class CitySearchApp:
             response = requests.get(url, params=params, timeout=30)
             response.raise_for_status()
             communes = response.json()
+            self.log(f"✓ {len(communes)} communes récupérées")
             
             results = {}
             min_pop = self.min_pop.get()
             max_pop = self.max_pop.get()
             min_dist = self.min_distance.get()
             max_dist = self.max_distance.get()
+            
+            self.log(f"Filtrage: pop {min_pop}-{max_pop}, dist {min_dist}-{max_dist} km")
             
             for commune in communes:
                 pop = commune.get('population', 0)
@@ -335,10 +557,12 @@ class CitySearchApp:
             
             # Tri par distance
             sorted_results = sorted(results.values(), key=lambda x: x['distance'])
+            self.log(f"✓ {len(sorted_results)} villes correspondent aux critères")
             
             # Enrichir avec altitude et température si demandé
             if self.fetch_altitude.get() or self.fetch_temperature.get():
                 total = len(sorted_results)
+                self.log(f"Récupération des données supplémentaires...")
                 
                 for i, city in enumerate(sorted_results):
                     if i % 5 == 0:  # Mise à jour du statut tous les 5 villes
@@ -350,6 +574,8 @@ class CitySearchApp:
                     if self.fetch_altitude.get():
                         altitude = self.get_elevation(city['lat'], city['lon'])
                         city['altitude'] = altitude if altitude is not None else "N/A"
+                        if i % 10 == 0:
+                            self.log(f"  Altitude {i+1}/{total}...")
                     else:
                         city['altitude'] = "N/A"
                     
@@ -357,8 +583,12 @@ class CitySearchApp:
                     if self.fetch_temperature.get():
                         temp = self.get_temperature(city['lat'], city['lon'])
                         city['temperature'] = temp if temp is not None else "N/A"
+                        if i % 10 == 0:
+                            self.log(f"  Température {i+1}/{total}...")
                     else:
                         city['temperature'] = "N/A"
+                
+                self.log(f"✓ Données supplémentaires récupérées")
             else:
                 # Pas de récupération de données
                 for city in sorted_results:
@@ -369,6 +599,7 @@ class CitySearchApp:
             self.current_results = sorted_results
             
             # Affichage dans le tableau
+            self.log(f"Affichage des résultats dans le tableau...")
             for city in sorted_results:
                 alt_display = str(city['altitude']) if city['altitude'] != "N/A" else "N/A"
                 temp_display = str(city['temperature']) if city['temperature'] != "N/A" else "N/A"
@@ -384,15 +615,163 @@ class CitySearchApp:
                 ))
             
             self.result_label.config(text=f"✅ {len(sorted_results)} villes trouvées")
+            self.log(f"✓ Recherche terminée avec succès!")
+            self.log(f"=== Fin de la recherche ===\n")
             
             self.result_label.config(text=f"✅ {len(sorted_results)} villes trouvées")
             
         except requests.exceptions.RequestException as e:
             messagebox.showerror("Erreur", f"Erreur lors de la récupération des données:\n{str(e)}")
             self.result_label.config(text="❌ Erreur")
+            self.log(f"❌ Erreur API: {str(e)}")
         except Exception as e:
             messagebox.showerror("Erreur", f"Une erreur est survenue:\n{str(e)}")
             self.result_label.config(text="❌ Erreur")
+            self.log(f"❌ Erreur: {str(e)}")
+    
+    def edit_selected(self):
+        """Modifier l'élément sélectionné dans le tableau"""
+        selection = self.tree.selection()
+        if not selection:
+            messagebox.showwarning("Attention", "Veuillez sélectionner une ville à modifier")
+            return
+        
+        item = selection[0]
+        values = self.tree.item(item, 'values')
+        
+        # Créer une fenêtre de dialogue
+        edit_window = tk.Toplevel(self.root)
+        edit_window.title("Modifier la ville")
+        edit_window.geometry("400x350")
+        
+        # Champs d'édition
+        ttk.Label(edit_window, text="Ville:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        ville_var = tk.StringVar(value=values[0])
+        ttk.Entry(edit_window, textvariable=ville_var, width=30).grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Label(edit_window, text="Code Postal:").grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
+        cp_var = tk.StringVar(value=values[1])
+        ttk.Entry(edit_window, textvariable=cp_var, width=30).grid(row=1, column=1, padx=5, pady=5)
+        
+        ttk.Label(edit_window, text="Population:").grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
+        pop_var = tk.StringVar(value=values[2].replace(' ', ''))
+        ttk.Entry(edit_window, textvariable=pop_var, width=30).grid(row=2, column=1, padx=5, pady=5)
+        
+        ttk.Label(edit_window, text="Distance (km):").grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
+        dist_var = tk.StringVar(value=values[3])
+        ttk.Entry(edit_window, textvariable=dist_var, width=30).grid(row=3, column=1, padx=5, pady=5)
+        
+        ttk.Label(edit_window, text="Proche de:").grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
+        ref_var = tk.StringVar(value=values[4])
+        ttk.Entry(edit_window, textvariable=ref_var, width=30).grid(row=4, column=1, padx=5, pady=5)
+        
+        ttk.Label(edit_window, text="Altitude (m):").grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
+        alt_var = tk.StringVar(value=values[5])
+        ttk.Entry(edit_window, textvariable=alt_var, width=30).grid(row=5, column=1, padx=5, pady=5)
+        
+        ttk.Label(edit_window, text="Temp. moy. (°C):").grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
+        temp_var = tk.StringVar(value=values[6])
+        ttk.Entry(edit_window, textvariable=temp_var, width=30).grid(row=6, column=1, padx=5, pady=5)
+        
+        def save_changes():
+            try:
+                new_values = (
+                    ville_var.get(),
+                    cp_var.get(),
+                    pop_var.get(),
+                    dist_var.get(),
+                    ref_var.get(),
+                    alt_var.get(),
+                    temp_var.get()
+                )
+                self.tree.item(item, values=new_values)
+                self.log(f"✓ Ville '{ville_var.get()}' modifiée")
+                edit_window.destroy()
+            except Exception as e:
+                messagebox.showerror("Erreur", f"Erreur lors de la modification:\n{str(e)}")
+        
+        ttk.Button(edit_window, text="💾 Enregistrer", command=save_changes).grid(row=7, column=0, columnspan=2, pady=20)
+    
+    def delete_selected(self):
+        """Supprimer l'élément sélectionné du tableau"""
+        selection = self.tree.selection()
+        if not selection:
+            messagebox.showwarning("Attention", "Veuillez sélectionner une ville à supprimer")
+            return
+        
+        item = selection[0]
+        ville_nom = self.tree.item(item, 'values')[0]
+        
+        if messagebox.askyesno("Confirmation", f"Voulez-vous vraiment supprimer '{ville_nom}' ?"):
+            self.tree.delete(item)
+            self.log(f"✓ Ville '{ville_nom}' supprimée")
+            
+            # Mettre à jour le compteur
+            count = len(self.tree.get_children())
+            self.result_label.config(text=f"✅ {count} villes trouvées")
+    
+    def add_city_manual(self):
+        """Ajouter manuellement une ville au tableau"""
+        add_window = tk.Toplevel(self.root)
+        add_window.title("Ajouter une ville")
+        add_window.geometry("400x350")
+        
+        # Champs d'ajout
+        ttk.Label(add_window, text="Ville:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        ville_var = tk.StringVar()
+        ttk.Entry(add_window, textvariable=ville_var, width=30).grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Label(add_window, text="Code Postal:").grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
+        cp_var = tk.StringVar()
+        ttk.Entry(add_window, textvariable=cp_var, width=30).grid(row=1, column=1, padx=5, pady=5)
+        
+        ttk.Label(add_window, text="Population:").grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
+        pop_var = tk.StringVar()
+        ttk.Entry(add_window, textvariable=pop_var, width=30).grid(row=2, column=1, padx=5, pady=5)
+        
+        ttk.Label(add_window, text="Distance (km):").grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
+        dist_var = tk.StringVar()
+        ttk.Entry(add_window, textvariable=dist_var, width=30).grid(row=3, column=1, padx=5, pady=5)
+        
+        ttk.Label(add_window, text="Proche de:").grid(row=4, column=0, padx=5, pady=5, sticky=tk.W)
+        ref_var = tk.StringVar()
+        ttk.Entry(add_window, textvariable=ref_var, width=30).grid(row=4, column=1, padx=5, pady=5)
+        
+        ttk.Label(add_window, text="Altitude (m):").grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
+        alt_var = tk.StringVar(value="N/A")
+        ttk.Entry(add_window, textvariable=alt_var, width=30).grid(row=5, column=1, padx=5, pady=5)
+        
+        ttk.Label(add_window, text="Temp. moy. (°C):").grid(row=6, column=0, padx=5, pady=5, sticky=tk.W)
+        temp_var = tk.StringVar(value="N/A")
+        ttk.Entry(add_window, textvariable=temp_var, width=30).grid(row=6, column=1, padx=5, pady=5)
+        
+        def add_city():
+            if not ville_var.get():
+                messagebox.showwarning("Attention", "Veuillez saisir un nom de ville")
+                return
+            
+            try:
+                new_values = (
+                    ville_var.get(),
+                    cp_var.get(),
+                    pop_var.get(),
+                    dist_var.get(),
+                    ref_var.get(),
+                    alt_var.get(),
+                    temp_var.get()
+                )
+                self.tree.insert('', tk.END, values=new_values)
+                self.log(f"✓ Ville '{ville_var.get()}' ajoutée")
+                
+                # Mettre à jour le compteur
+                count = len(self.tree.get_children())
+                self.result_label.config(text=f"✅ {count} villes trouvées")
+                
+                add_window.destroy()
+            except Exception as e:
+                messagebox.showerror("Erreur", f"Erreur lors de l'ajout:\n{str(e)}")
+        
+        ttk.Button(add_window, text="➕ Ajouter", command=add_city).grid(row=7, column=0, columnspan=2, pady=20)
     
     def export_csv(self):
         if not self.current_results:
@@ -479,14 +858,39 @@ class CitySearchApp:
             return
         
         try:
-            # Calculer le centre de la carte (moyenne des coordonnées)
-            if self.current_results:
-                avg_lat = sum(city['lat'] for city in self.current_results) / len(self.current_results)
-                avg_lon = sum(city['lon'] for city in self.current_results) / len(self.current_results)
+            self.log("Génération de la carte HTML...")
+            
+            # Récupérer les données actuelles du tableau
+            current_table_data = []
+            for item in self.tree.get_children():
+                values = self.tree.item(item, 'values')
+                # Trouver les coordonnées dans current_results
+                matching_city = None
+                for city in self.current_results:
+                    if city['nom'] == values[0]:
+                        matching_city = city
+                        break
+                
+                if matching_city:
+                    current_table_data.append({
+                        'nom': values[0],
+                        'population': values[2],
+                        'distance': values[3],
+                        'ville_reference': values[4],
+                        'altitude': values[5],
+                        'temperature': values[6],
+                        'lat': matching_city['lat'],
+                        'lon': matching_city['lon']
+                    })
+            
+            # Calculer le centre de la carte
+            if current_table_data:
+                avg_lat = sum(float(city['lat']) for city in current_table_data) / len(current_table_data)
+                avg_lon = sum(float(city['lon']) for city in current_table_data) / len(current_table_data)
             else:
                 avg_lat, avg_lon = 46.5, 2.5
             
-            # Créer un fichier HTML avec Leaflet
+            # Créer le fichier HTML
             html_content = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -543,6 +947,23 @@ class CitySearchApp:
         
 """
             
+            # Ajouter les zones de recherche si demandé
+            if self.show_search_zones.get():
+                max_dist = self.max_distance.get() * 1000  # Convertir en mètres
+                for ref_city in self.reference_cities:
+                    coords = self.city_coordinates.get(ref_city)
+                    if coords:
+                        html_content += f"""
+        // Zone de recherche pour {ref_city}
+        L.circle([{coords['lat']}, {coords['lon']}], {{
+            color: '#3498db',
+            fillColor: '#3498db',
+            fillOpacity: 0.1,
+            radius: {max_dist},
+            weight: 1
+        }}).addTo(map);
+"""
+            
             # Ajouter les villes de référence
             for ref_city in self.reference_cities:
                 coords = self.city_coordinates.get(ref_city)
@@ -554,9 +975,10 @@ class CitySearchApp:
         markers.push(marker);
 """
             
-            # Ajouter les résultats (limiter selon le paramètre utilisateur)
+            # Ajouter les résultats (limiter selon le paramètre)
             max_cities = self.max_cities_map.get()
-            results_to_show = self.current_results[:max_cities]
+            results_to_show = current_table_data[:max_cities]
+            
             for city in results_to_show:
                 city_name = city['nom'].replace("'", "\\'").replace('"', '\\"')
                 alt_text = str(city['altitude']) + "m" if city['altitude'] != "N/A" else "N/A"
@@ -564,7 +986,7 @@ class CitySearchApp:
                 
                 html_content += f"""
         L.marker([{city['lat']}, {city['lon']}], {{icon: blueIcon}})
-            .bindPopup('<div class="city-popup"><h3>{city_name}</h3><p>Population: {city['population']:,}</p><p>Distance: {city['distance']} km</p><p>Proche de: {city['ville_reference']}</p><p>Altitude: {alt_text}</p><p>Temp. moy.: {temp_text}</p></div>')
+            .bindPopup('<div class="city-popup"><h3>{city_name}</h3><p>Population: {city['population']}</p><p>Distance: {city['distance']} km</p><p>Proche de: {city['ville_reference']}</p><p>Altitude: {alt_text}</p><p>Temp. moy.: {temp_text}</p></div>')
             .addTo(map);
 """
                 html_content += f"        markers.push(L.marker([{city['lat']}, {city['lon']}]));\n"
@@ -580,26 +1002,25 @@ class CitySearchApp:
 </html>
 """
             
-            # Sauvegarder le fichier
-            import tempfile
+            # Sauvegarder le fichier à côté du script Python
             import os
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            map_file = os.path.join(script_dir, 'carte_villes.html')
             
-            # Créer un fichier dans le dossier temporaire
-            temp_dir = tempfile.gettempdir()
-            temp_file = os.path.join(temp_dir, 'carte_villes.html')
-            
-            with open(temp_file, 'w', encoding='utf-8') as f:
+            with open(map_file, 'w', encoding='utf-8') as f:
                 f.write(html_content)
             
-            # Ouvrir dans le navigateur
-            webbrowser.open('file://' + temp_file)
+            self.log(f"✓ Carte générée: {map_file}")
             
-            if len(self.current_results) > max_cities:
+            # Ouvrir dans le navigateur
+            webbrowser.open('file://' + map_file)
+            
+            if len(current_table_data) > max_cities:
                 messagebox.showinfo("Carte ouverte", 
                     f"La carte s'est ouverte dans votre navigateur.\n\n"
                     f"🔴 Marqueurs rouges = Villes de référence\n"
                     f"🔵 Marqueurs bleus = Villes trouvées\n\n"
-                    f"Note: {max_cities} villes affichées sur {len(self.current_results)} résultats.\n"
+                    f"Note: {max_cities} villes affichées sur {len(current_table_data)} résultats.\n"
                     f"Modifiez 'Villes max sur carte' pour en afficher plus.")
             else:
                 messagebox.showinfo("Carte ouverte", 
@@ -609,6 +1030,7 @@ class CitySearchApp:
             
         except Exception as e:
             messagebox.showerror("Erreur", f"Erreur lors de l'ouverture de la carte:\n{str(e)}")
+            self.log(f"❌ Erreur carte: {str(e)}")
 
 if __name__ == "__main__":
     root = tk.Tk()
