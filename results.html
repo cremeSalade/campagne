@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resultats sauvegardes - Recherche de villes</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏡</text></svg>">
-    <link rel="stylesheet" href="./static/css/app.css?v=20260202b">
+    <link rel="stylesheet" href="./static/css/app.css?v=20260202c">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Aller au contenu</a>
     <header class="site-header">
         <div class="wrap header-inner">
             <div class="brand">
@@ -20,7 +21,7 @@
                 </div>
                 <div>
                     <h1 class="site-title">Resultats de recherche</h1>
-                    <p class="site-subtitle" id="result-metadata">Chargement...</p>
+                    <p class="site-subtitle" id="result-metadata" role="status" aria-live="polite">Chargement...</p>
                 </div>
             </div>
             <div class="header-actions">
@@ -29,7 +30,7 @@
         </div>
     </header>
 
-    <main class="wrap">
+    <main id="main-content" class="wrap">
         <div id="loading" class="panel" style="padding:32px; text-align:center;">
             <div class="loader" style="margin:0 auto;"></div>
             <p class="panel-subtitle" style="margin-top:12px;">Chargement des resultats...</p>
@@ -54,26 +55,26 @@
                 </aside>
 
                 <section class="panel">
-                    <div class="tabs">
-                        <button onclick="switchTab('list')" id="tab-list" class="tab-button active">
+                    <div class="tabs" role="tablist" aria-label="Resultats">
+                        <button type="button" onclick="switchTab('list')" id="tab-list" class="tab-button active" role="tab" aria-controls="list-view" aria-selected="true" tabindex="0">
                             <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                             </svg>
                             Liste
                         </button>
-                        <button onclick="switchTab('map')" id="tab-map" class="tab-button">
+                        <button type="button" onclick="switchTab('map')" id="tab-map" class="tab-button" role="tab" aria-controls="map-view" aria-selected="false" tabindex="-1">
                             <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
                             </svg>
                             Carte
                         </button>
-                        <button onclick="switchTab('urgences')" id="tab-urgences" class="tab-button">
+                        <button type="button" onclick="switchTab('urgences')" id="tab-urgences" class="tab-button" role="tab" aria-controls="urgences-view" aria-selected="false" tabindex="-1">
                             <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                             </svg>
                             Urgences
                         </button>
-                        <button onclick="switchTab('urgences-map')" id="tab-urgences-map" class="tab-button">
+                        <button type="button" onclick="switchTab('urgences-map')" id="tab-urgences-map" class="tab-button" role="tab" aria-controls="urgences-map-view" aria-selected="false" tabindex="-1">
                             <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                 <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -83,34 +84,34 @@
                     </div>
 
                     <div class="panel-content">
-                        <div id="list-view" class="tab-content">
+                        <div id="list-view" class="tab-content" role="tabpanel" aria-labelledby="tab-list">
                             <div class="results-header" style="margin-bottom:12px;">
                                 <div>
                                     <h3 class="panel-title" style="margin:0;">Resultats</h3>
-                                    <p class="panel-subtitle" id="result-count">Chargement...</p>
+                                    <p class="panel-subtitle" id="result-count" role="status" aria-live="polite">Chargement...</p>
                                 </div>
                                 <div class="table-actions">
-                                    <button onclick="exportResultsCSV()" class="btn btn-secondary btn-icon">CSV</button>
-                                    <button onclick="exportResultsJSON()" class="btn btn-secondary btn-icon">JSON</button>
+                                    <button type="button" onclick="exportResultsCSV()" class="btn btn-secondary btn-icon">CSV</button>
+                                    <button type="button" onclick="exportResultsJSON()" class="btn btn-secondary btn-icon">JSON</button>
                                 </div>
                             </div>
 
                             <div class="table-toolbar">
-                                <input type="text" id="results-filter" placeholder="Filtrer les resultats..." class="input" onkeyup="filterResults(this.value)">
-                                <button onclick="clearFilter()" class="btn btn-ghost btn-icon">Effacer</button>
+                                <input type="text" id="results-filter" placeholder="Filtrer les resultats..." class="input" onkeyup="filterResults(this.value)" aria-label="Filtrer les resultats">
+                                <button type="button" onclick="clearFilter()" class="btn btn-ghost btn-icon">Effacer</button>
                             </div>
 
                             <div id="results-list"></div>
                         </div>
 
-                        <div id="map-view" class="tab-content hidden">
+                        <div id="map-view" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-map" aria-hidden="true">
                             <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-                                <button id="fullscreen-btn" onclick="toggleMapFullscreen()" class="btn btn-secondary btn-icon">Plein ecran</button>
+                                <button type="button" id="fullscreen-btn" onclick="toggleMapFullscreen()" class="btn btn-secondary btn-icon">Plein ecran</button>
                             </div>
                             <div id="map" class="map-frame"></div>
                         </div>
 
-                        <div id="urgences-view" class="tab-content hidden">
+                        <div id="urgences-view" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-urgences" aria-hidden="true">
                             <div id="urgences-empty" class="panel-subtitle" style="text-align:center; padding:24px;">Aucun service d'urgence enregistre pour cette recherche</div>
                             <div id="urgences-content" class="hidden">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -120,12 +121,12 @@
                                     <table class="data-table">
                                         <thead>
                                             <tr>
-                                                <th>Nom</th>
-                                                <th>Commune</th>
-                                                <th>Code postal</th>
-                                                <th>Type</th>
-                                                <th>Distance</th>
-                                                <th>Zone ref</th>
+                                                <th scope="col">Nom</th>
+                                                <th scope="col">Commune</th>
+                                                <th scope="col">Code postal</th>
+                                                <th scope="col">Type</th>
+                                                <th scope="col">Distance</th>
+                                                <th scope="col">Zone ref</th>
                                             </tr>
                                         </thead>
                                         <tbody id="urgences-tbody"></tbody>
@@ -134,12 +135,12 @@
                             </div>
                         </div>
 
-                        <div id="urgences-map-view" class="tab-content hidden">
+                        <div id="urgences-map-view" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-urgences-map" aria-hidden="true">
                             <div id="urgences-map-empty" class="panel-subtitle" style="text-align:center; padding:24px;">Aucun service d'urgence enregistre pour cette recherche</div>
                             <div id="urgences-map-content" class="hidden">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                                     <span class="panel-subtitle"><strong id="urgences-map-count">0</strong> services d'urgence affiches</span>
-                                    <button id="urgences-fullscreen-btn" onclick="toggleUrgencesMapFullscreen()" class="btn btn-secondary btn-icon">Plein ecran</button>
+                                    <button type="button" id="urgences-fullscreen-btn" onclick="toggleUrgencesMapFullscreen()" class="btn btn-secondary btn-icon">Plein ecran</button>
                                 </div>
                                 <div id="urgences-map" class="map-frame"></div>
                             </div>

@@ -114,6 +114,7 @@ const edIcons = {
 document.addEventListener('DOMContentLoaded', function() {
     loadSharedResults();
     setupScrollTop();
+    initTabs();
 });
 
 function setupScrollTop() {
@@ -291,7 +292,7 @@ function displayResults(results) {
             : '';
         const alignClass = align === 'center' ? 'cell-center' : align === 'right' ? 'cell-right' : '';
         const indicatorHtml = indicator ? `<span class="sort-indicator">${indicator}</span>` : '';
-        return `<th class="sortable ${alignClass} ${extraClass}" onclick="sortResults('${column}')">${label}${indicatorHtml}</th>`;
+        return `<th scope="col" class="sortable ${alignClass} ${extraClass}" onclick="sortResults('${column}')">${label}${indicatorHtml}</th>`;
     };
 
     const apptBreaks = computeBreaks('prix_m2_appartement');
@@ -300,7 +301,7 @@ function displayResults(results) {
     let html = '<div class="table-wrap"><table class="data-table">';
     html += '<thead><tr>';
     html += sortableHeader('nom', 'Ville', 'left', 'col-name');
-    html += '<th class="cell-center">Wiki</th>';
+    html += '<th scope="col" class="cell-center">Wiki</th>';
     html += sortableHeader('code_postal', 'CP');
     html += sortableHeader('population', 'Population', 'right');
     html += sortableHeader('distance', 'Distance', 'right');
@@ -456,29 +457,73 @@ function updateMap() {
 }
 
 // Changer d'onglet
+function initTabs() {
+    const tabs = Array.from(document.querySelectorAll('.tab-button'));
+    if (tabs.length === 0) return;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('keydown', event => {
+            if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+
+            const currentIndex = tabs.indexOf(event.currentTarget);
+            let nextIndex = currentIndex;
+
+            if (event.key === 'ArrowRight') {
+                nextIndex = (currentIndex + 1) % tabs.length;
+            } else if (event.key === 'ArrowLeft') {
+                nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+            } else if (event.key === 'Home') {
+                nextIndex = 0;
+            } else if (event.key === 'End') {
+                nextIndex = tabs.length - 1;
+            }
+
+            const nextTab = tabs[nextIndex];
+            if (nextTab && nextTab.id) {
+                const target = nextTab.id.replace('tab-', '');
+                switchTab(target);
+                nextTab.focus();
+            }
+        });
+    });
+}
+
 function switchTab(tabName) {
-    // Mettre à jour les boutons
+    // Mettre a jour les boutons
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+        btn.setAttribute('tabindex', '-1');
     });
-    document.getElementById(`tab-${tabName}`).classList.add('active');
+    const activeBtn = document.getElementById(`tab-${tabName}`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-selected', 'true');
+        activeBtn.setAttribute('tabindex', '0');
+    }
 
-    // Mettre à jour le contenu
+    // Mettre a jour le contenu
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.add('hidden');
+        content.setAttribute('aria-hidden', 'true');
     });
 
-    document.getElementById(`${tabName}-view`).classList.remove('hidden');
+    const activePanel = document.getElementById(`${tabName}-view`);
+    if (activePanel) {
+        activePanel.classList.remove('hidden');
+        activePanel.setAttribute('aria-hidden', 'false');
+    }
 
     if (tabName === 'map') {
-        // Forcer le rafraîchissement de la carte
+        // Forcer le rafraichissement de la carte
         setTimeout(() => {
             if (map) {
                 map.invalidateSize();
             }
         }, 100);
     } else if (tabName === 'urgences-map') {
-        // Forcer le rafraîchissement de la carte urgences
+        // Forcer le rafraichissement de la carte urgences
         setTimeout(() => {
             if (urgencesMap) {
                 urgencesMap.invalidateSize();
@@ -489,6 +534,7 @@ function switchTab(tabName) {
 }
 
 // Exporter en CSV
+
 function exportResultsCSV() {
     if (!savedData) return;
 
