@@ -466,11 +466,13 @@ summary:focus-visible {
 
 .panel-content {
     padding: 20px 24px 24px;
+    overflow-x: hidden;
 }
 
 .data-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 900px;
 }
 
 .data-table th {
@@ -591,6 +593,8 @@ summary:focus-visible {
 
 .table-wrap {
     overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
 }
 
 .cell-center {
@@ -747,6 +751,12 @@ summary:focus-visible {
     height: 520px;
 }
 
+#results-list {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
 .scroll-top {
     position: fixed;
     right: 20px;
@@ -803,6 +813,10 @@ summary:focus-visible {
     .tab-button {
         flex: 0 0 auto;
         min-width: 140px;
+    }
+
+    .data-table {
+        min-width: 720px;
     }
 }
 
