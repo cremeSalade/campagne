@@ -964,6 +964,39 @@ function updateUrgencesMap() {
     }
 }
 
+// Plein ecran pour la carte principale
+function toggleMapFullscreen() {
+    const mapView = document.getElementById('map-view');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+    if (!mapView) return;
+
+    if (!document.fullscreenElement) {
+        mapView.requestFullscreen().then(() => {
+            setTimeout(() => {
+                if (map) {
+                    map.invalidateSize();
+                    updateMap();
+                }
+            }, 100);
+            if (fullscreenBtn) {
+                fullscreenBtn.textContent = 'Quitter plein ecran';
+            }
+        });
+    } else {
+        document.exitFullscreen().then(() => {
+            setTimeout(() => {
+                if (map) {
+                    map.invalidateSize();
+                }
+            }, 100);
+            if (fullscreenBtn) {
+                fullscreenBtn.textContent = 'Plein ecran';
+            }
+        });
+    }
+}
+
 // Plein ecran pour la carte urgences
 function toggleUrgencesMapFullscreen() {
     const mapView = document.getElementById('urgences-map-view');
@@ -1060,6 +1093,7 @@ window.sortResults = sortResults;
 window.filterResults = filterResults;
 window.clearFilter = clearFilter;
 window.toggleUrgencesMapFullscreen = toggleUrgencesMapFullscreen;
+window.toggleMapFullscreen = toggleMapFullscreen;
 window.applyZonesCsv = applyZonesCsv;
 window.loadZonesCsv = loadZonesCsv;
 window.clearZonesCsv = clearZonesCsv;
