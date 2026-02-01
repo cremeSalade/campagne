@@ -65,7 +65,8 @@ async function loadData() {
     if (loadingPromise) return loadingPromise;
 
     loadingPromise = (async () => {
-        const baseUrl = new URL("../../", self.location);
+        const baseUrl = new URL(self.location.href);
+        baseUrl.pathname = baseUrl.pathname.replace(/\/static\/js\/.*$/, "/");
         const communesUrl = new URL("data/communes_enrichies.json", baseUrl);
         const urgencesUrl = new URL("data/urgences_service_public.json", baseUrl);
 

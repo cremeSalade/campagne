@@ -305,7 +305,7 @@ function base64UrlEncode(payload) {
 function getSearchWorker() {
     if (searchWorker) return searchWorker;
 
-    searchWorker = new Worker('./static/js/search-worker.js?v=20260202c');
+    searchWorker = new Worker('./static/js/search-worker.js?v=20260202d');
     searchWorker.onmessage = event => {
         const data = event.data || {};
         const request = workerRequests.get(data.id);
