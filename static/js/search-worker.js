@@ -1,4 +1,4 @@
-let communes = null;
+﻿let communes = null;
 let urgences = null;
 let communesByName = null;
 let loadingPromise = null;
