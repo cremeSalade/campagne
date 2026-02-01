@@ -1,0 +1,29 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tests - Campagne App Static</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7fafc; margin: 0; padding: 24px; }
+    h1 { margin: 0 0 16px; }
+    .actions { margin-bottom: 16px; }
+    button { background: #16a34a; color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+    #results { background: #111827; color: #e5e7eb; padding: 12px; border-radius: 8px; min-height: 120px; white-space: pre-wrap; }
+    iframe { width: 100%; height: 720px; border: 1px solid #e5e7eb; border-radius: 8px; }
+    .note { color: #4b5563; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Tests interactifs (statique)</h1>
+  <p class="note">Ces tests pilotent l'interface dans un iframe (même origine) pour simuler les interactions.</p>
+  <div class="actions">
+    <button id="run-tests">Lancer les tests</button>
+  </div>
+  <div id="results">En attente...</div>
+  <iframe id="app-frame" src="./index.html"></iframe>
+
+  <script src="./tests/test-runner.js"></script>
+</body>
+</html>

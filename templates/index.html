@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche de villes à la campagne</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏡</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 600px; }
+        .loader {
+            border-top-color: #3498db;
+            animation: spinner 1s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Mode plein écran pour la carte */
+        #map-view:fullscreen {
+            background: white;
+            padding: 20px;
+        }
+        #map-view:fullscreen #map {
+            height: calc(100vh - 100px) !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <h1 class="text-3xl font-bold flex items-center">
+                    <svg class="w-10 h-10 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                    </svg>
+                    Recherche de villes à la campagne
+                </h1>
+                <p class="text-green-100 mt-2">Trouvez votre ville idéale pour vous installer à la campagne</p>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-4 py-8">
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-blue-100 rounded-full p-3">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm font-medium">Communes avec prix</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ stats.nb_communes_prix|default(0) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-green-100 rounded-full p-3">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500 text-sm font-medium">Communes géolocalisées</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ stats.nb_communes_coords|default(0) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Panel - Search Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            Critères de recherche
+                        </h2>
+
+                        <!-- Zones de recherche (Cartouches) -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Zones de recherche
+                            </label>
+                            <div id="search-zones" class="space-y-3 mb-3">
+                                <!-- Les cartouches seront ajoutées ici -->
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="flex-1 relative">
+                                    <input type="text" id="city-search" placeholder="Ajouter une ville..."
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm"
+                                        autocomplete="off"
+                                        onkeyup="onCitySearchInput(this.value)">
+                                    <ul id="autocomplete-dropdown"
+                                        class="hidden absolute top-full left-0 right-0 z-10 bg-white border border-gray-300 rounded-md mt-1 max-h-48 overflow-y-auto shadow-lg">
+                                        <!-- Suggestions apparaîtront ici -->
+                                    </ul>
+                                </div>
+                                <button onclick="addSearchZone()"
+                                    class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition text-sm font-medium">
+                                    +
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Population Range -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Population</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-xs text-gray-500">Min</label>
+                                    <input type="number" id="min-pop" value="5000"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500">Max</label>
+                                    <input type="number" id="max-pop" value="50000"
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Search Button -->
+                        <button onclick="searchCities()" 
+                            class="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition font-medium shadow-md flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            Rechercher
+                        </button>
+
+                        <!-- Loading indicator -->
+                        <div id="loading" class="hidden mt-4 text-center">
+                            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto"></div>
+                            <p class="text-gray-600 mt-3 text-sm font-medium">Recherche en cours...</p>
+
+                            <!-- Barre de progression -->
+                            <div class="mt-4 bg-gray-200 rounded-full h-2 overflow-hidden max-w-md mx-auto">
+                                <div id="progress-bar" class="bg-green-600 h-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p id="progress-text" class="text-gray-500 text-xs mt-2">0 villes trouvées</p>
+                        </div>
+
+                        <!-- Results info -->
+                        <div id="results-info" class="hidden mt-4 p-4 bg-blue-50 rounded-md border border-blue-200">
+                            <p class="text-sm text-blue-800 font-medium"></p>
+                        </div>
+
+                        <!-- Logs Window -->
+                        <details id="logs-panel" class="mt-4">
+                            <summary class="cursor-pointer bg-gray-800 px-4 py-2 rounded-t-md text-gray-300 text-sm font-mono hover:bg-gray-700 transition select-none">
+                                📜 Logs de traitement
+                            </summary>
+                            <div class="bg-gray-900 rounded-b-md overflow-hidden shadow-lg">
+                                <div id="logs-content" class="bg-gray-900 p-4 max-h-64 overflow-y-auto font-mono text-xs text-green-400">
+                                    <!-- Logs will appear here -->
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                <!-- Right Panel - Results -->
+                <div class="lg:col-span-2">
+                    <!-- Tabs -->
+                    <div class="bg-white rounded-t-lg shadow-md">
+                        <div class="border-b border-gray-200">
+                            <nav class="flex -mb-px">
+                                <button onclick="switchTab('list')" id="tab-list"
+                                    class="tab-button active flex-1 py-4 px-6 text-center border-b-2 font-medium text-sm">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                    </svg>
+                                    Liste
+                                </button>
+                                <button onclick="switchTab('map')" id="tab-map"
+                                    class="tab-button flex-1 py-4 px-6 text-center border-b-2 font-medium text-sm">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                    </svg>
+                                    Carte
+                                </button>
+                                <button onclick="switchTab('urgences')" id="tab-urgences"
+                                    class="tab-button flex-1 py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                    </svg>
+                                    Urgences
+                                </button>
+                                <button onclick="switchTab('urgences-map')" id="tab-urgences-map"
+                                    class="tab-button flex-1 py-4 px-6 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    Carte Urgences
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="bg-white rounded-b-lg shadow-md p-6">
+                        <!-- List View -->
+                        <div id="list-view" class="tab-content">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-semibold text-gray-800">Résultats</h3>
+                                <div class="flex gap-2">
+                                    <button onclick="exportCSV()" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition text-sm font-medium flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        CSV
+                                    </button>
+                                    <button onclick="exportJSON()"
+                                        class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition text-sm font-medium flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        JSON
+                                    </button>
+                                    <button onclick="saveResults()"
+                                        class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition text-sm font-medium flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                                        </svg>
+                                        Sauvegarder
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Section de partage inline -->
+                            <div id="share-section" class="hidden mb-4 p-4 bg-purple-50 border border-purple-200 rounded-md">
+                                <p class="text-sm font-medium text-purple-900 mb-3">Lien permanent pour partager</p>
+                                <div class="flex gap-2">
+                                    <input type="text" id="share-link-inline" readonly
+                                        class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm font-mono bg-white">
+                                    <button onclick="copyShareLink()"
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium">
+                                        Copier
+                                    </button>
+                                    <button onclick="openShareLink()"
+                                        class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium">
+                                        Ouvrir
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Champ de filtrage -->
+                            <div id="filter-section" class="hidden mb-4 flex gap-2">
+                                <input type="text" id="results-filter" placeholder="Filtrer les résultats (ville, code postal, etc.)..."
+                                    class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm px-3 py-2"
+                                    onkeyup="filterResults(this.value)">
+                                <button onclick="clearFilter()"
+                                    class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 text-sm font-medium">
+                                    Réinitialiser
+                                </button>
+                            </div>
+
+                            <div id="results-list" class="overflow-auto">
+                                <p class="text-gray-500 text-center py-8">Lancez une recherche pour voir les résultats</p>
+                            </div>
+                        </div>
+
+                        <!-- Map View -->
+                        <div id="map-view" class="tab-content hidden">
+                            <div class="mb-4 flex justify-end">
+                                <button id="fullscreen-btn" onclick="toggleMapFullscreen()"
+                                    class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition text-sm font-medium flex items-center">
+                                    ⛶ Plein écran
+                                </button>
+                            </div>
+                            <div id="map" class="rounded-lg border border-gray-200"></div>
+                        </div>
+
+                        <!-- Urgences View -->
+                        <div id="urgences-view" class="tab-content hidden">
+                            <div id="urgences-empty" class="text-center text-gray-500 py-8">
+                                Lancez une recherche pour voir les services d'urgence dans la zone
+                            </div>
+                            <div id="urgences-content" class="hidden">
+                                <div class="mb-4 flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">
+                                        <span id="urgences-count" class="font-bold text-red-600">0</span> services d'urgence dans la zone
+                                    </span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commune</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CP</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
+                                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zone</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="urgences-tbody" class="bg-white divide-y divide-gray-200">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Urgences Map View -->
+                        <div id="urgences-map-view" class="tab-content hidden">
+                            <div id="urgences-map-empty" class="text-center text-gray-500 py-8">
+                                Lancez une recherche pour voir la carte des services d'urgence
+                            </div>
+                            <div id="urgences-map-content" class="hidden">
+                                <div class="mb-4 flex justify-between items-center">
+                                    <span class="text-sm text-gray-600">
+                                        <span class="font-bold text-red-600" id="urgences-map-count">0</span> services d'urgence affichés
+                                    </span>
+                                    <button id="urgences-fullscreen-btn" onclick="toggleUrgencesMapFullscreen()"
+                                        class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition text-sm font-medium">
+                                        Plein écran
+                                    </button>
+                                </div>
+                                <div id="urgences-map" class="rounded-lg border border-gray-200" style="height: 600px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js?v=20260201d"></script>
+    <script src="/static/js/logs.js?v=20260201"></script>
+</body>
+</html>
