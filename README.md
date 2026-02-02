@@ -1,4 +1,5 @@
 # Campagne
+
 des outils plus ou moins vibe codé pour s'installer à la campagne
 
 Accessible à : [https://cremesalade.github.io/campagne/](https://cremesalade.github.io/campagne/)
@@ -28,18 +29,9 @@ python serve.py
 ```
 Puis ouvrir http://127.0.0.1:8000
 
-## Déploiement GitHub Pages
-- Assurez-vous que `index.html`, `results.html`, `static/` et `data/` sont à la racine du dépôt publié.
-- Les liens sont relatifs, donc compatibles avec un sous-chemin (repo GitHub Pages).
-
-## Tests interactifs
-Lancer le serveur puis ouvrir http://127.0.0.1:8000/tests.html
-Le bouton lance des sc?narios (autocomplete, recherche, partage).
-
 ## Selenium
 - Lancer le serveur: python serve.py
 - Lancer le test: python tests/selenium_smoke.py
-(Chrome installe requis. Selenium Manager telecharge le driver si besoin.)
 
 ## Corriger les coordonnees manquantes
 Script: scripts/fix_missing_coords.py
