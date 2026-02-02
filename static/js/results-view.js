@@ -13,6 +13,46 @@ let workerRequestId = 0;
 const workerRequests = new Map();
 let shareTag = 'partage';
 
+function getScrollTarget(container) {
+    if (!container) return null;
+    if (container.classList.contains('tabs-shell')) {
+        return container.querySelector('.tabs');
+    }
+    if (container.classList.contains('results-shell')) {
+        return container.querySelector('#results-list');
+    }
+    if (container.classList.contains('tabs')) {
+        return container;
+    }
+    return container.querySelector('.table-wrap') || container;
+}
+
+function updateScrollIndicators(container) {
+    if (!container) return;
+    const target = getScrollTarget(container);
+    const left = container.querySelector('.scroll-indicator--left');
+    const right = container.querySelector('.scroll-indicator--right');
+    if (!target || !left || !right) return;
+
+    const canScroll = target.scrollWidth > target.clientWidth + 1;
+    container.classList.toggle('has-overflow', canScroll);
+
+    if (!canScroll) return;
+    left.style.opacity = target.scrollLeft > 2 ? '1' : '0';
+    right.style.opacity = target.scrollLeft + target.clientWidth < target.scrollWidth - 2 ? '1' : '0';
+}
+
+function bindScrollIndicators(container) {
+    if (!container) return;
+    const target = getScrollTarget(container);
+    if (!target) return;
+    const handler = () => updateScrollIndicators(container);
+    target.addEventListener('scroll', handler, { passive: true });
+    window.addEventListener('resize', handler);
+    setTimeout(handler, 50);
+}
+
+
 function base64UrlDecode(token) {
     let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
     while (base64.length % 4) {
@@ -115,19 +155,18 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSharedResults();
     setupScrollTop();
     initTabs();
+    setExportButtonsEnabled(false);
+    bindScrollIndicators(document.querySelector('.tabs-shell'));
+    bindScrollIndicators(document.querySelector('.results-shell'));
 });
+
+let currentTab = 'list';
 
 function setupScrollTop() {
     const scrollBtn = document.getElementById('scroll-top');
     if (!scrollBtn) return;
 
-    const onScroll = () => {
-        if (window.scrollY > 400) {
-            scrollBtn.classList.add('is-visible');
-        } else {
-            scrollBtn.classList.remove('is-visible');
-        }
-    };
+    const onScroll = () => updateScrollTopVisibility();
 
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
@@ -136,6 +175,22 @@ function setupScrollTop() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 }
+
+function updateScrollTopVisibility() {
+    const scrollBtn = document.getElementById('scroll-top');
+    if (!scrollBtn) return;
+    const isTableTab = currentTab === 'list' || currentTab === 'urgences';
+    if (!isTableTab) {
+        scrollBtn.classList.remove('is-visible');
+        return;
+    }
+    if (window.scrollY > 400) {
+        scrollBtn.classList.add('is-visible');
+    } else {
+        scrollBtn.classList.remove('is-visible');
+    }
+}
+
 
 // Charger les resultats sauvegardes
 // Afficher le contenu
@@ -163,6 +218,19 @@ function displayContent() {
 function showError() {
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('error').classList.remove('hidden');
+}
+
+function setExportButtonsEnabled(enabled) {
+    const buttons = [
+        document.getElementById('export-results-csv-btn'),
+        document.getElementById('export-results-json-btn')
+    ];
+
+    buttons.forEach(button => {
+        if (!button) return;
+        button.disabled = !enabled;
+        button.setAttribute('aria-disabled', String(!enabled));
+    });
 }
 
 // Formater une date ISO
@@ -247,6 +315,7 @@ function displayResults(results) {
 
     if (!results || results.length === 0) {
         container.innerHTML = '<p class="muted" style="text-align:center; padding:24px;">Aucun resultat</p>';
+        setExportButtonsEnabled(!!(savedData && savedData.results && savedData.results.length));
         return;
     }
 
@@ -365,6 +434,8 @@ function displayResults(results) {
 
     html += '</tbody></table></div>';
     container.innerHTML = html;
+    setExportButtonsEnabled(!!(savedData && savedData.results && savedData.results.length));
+    bindScrollIndicators(container.closest('.results-shell') || container);
 }
 
 function initMap() {
@@ -509,6 +580,8 @@ function switchTab(tabName) {
         content.setAttribute('aria-hidden', 'true');
     });
 
+    currentTab = tabName;
+    updateScrollTopVisibility();
     const activePanel = document.getElementById(`${tabName}-view`);
     if (activePanel) {
         activePanel.classList.remove('hidden');

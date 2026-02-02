@@ -1,0 +1,214 @@
+<html lang="fr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche de villes a la campagne</title>
+    <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;🏡&lt;/text&gt;&lt;/svg&gt;">
+    <link rel="stylesheet" href="./static/css/app.css?v=20260202i">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Aller au contenu</a>
+    <header class="site-header">
+        <div class="wrap header-inner">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="site-title">Recherche de villes a la campagne</h1>
+                    <p class="site-subtitle">Trouvez votre ville ideale pour vous installer a la campagne</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="wrap main-layout">
+        <aside class="panel panel--form">
+            <div class="panel-header">
+                <h2 class="panel-title">Criteres de recherche</h2>
+                <p class="panel-subtitle">Choisissez vos zones, votre population cible et lancez la recherche.</p>
+            </div>
+            <div class="panel-body">
+                <div class="field-group">
+                    <label class="field-label">Zones de recherche</label>
+                    <div id="search-zones" class="zones-list"></div>
+                    <div class="zone-input zone-input--spaced">
+                        <div class="zone-input__field">
+                            <input type="text" id="city-search" placeholder="Ajouter une ville..." class="input" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="autocomplete-dropdown" aria-haspopup="listbox" aria-describedby="city-search-help">
+                            <p id="city-search-help" class="sr-only">Tapez une ville puis utilisez les fleches pour naviguer dans les suggestions.</p>
+                            <ul id="autocomplete-dropdown" class="autocomplete hidden" role="listbox"></ul>
+                        </div>
+                        <button type="button" onclick="addSearchZone()" class="btn btn-primary btn-icon">Ajouter</button>
+                    </div>
+                </div>
+
+                <details id="csv-zones-editor" class="csv-editor">
+                    <summary>Edition CSV des zones (optionnel)</summary>
+                    <div class="csv-editor__body">
+                        <p class="csv-editor__hint">Format: name,lat,lon,rayon_min,rayon_max,exclure (true/false). Entete optionnelle.</p>
+                        <textarea id="zones-csv" rows="6" class="textarea" placeholder="name,lat,lon,rayon_min,rayon_max,exclure\nLyon,45.764,4.835,0,50,false\nMontpellier,43.611,3.877,10,80,false\nToulouse,43.604,1.444,0,120,true"></textarea>
+                        <div id="zones-csv-errors" class="csv-editor__hint hidden"></div>
+                        <div class="zone-input" style="margin-top:10px;">
+                        <button type="button" onclick="applyZonesCsv()" class="btn btn-primary btn-icon">Appliquer</button>
+                        <button type="button" onclick="loadZonesCsv()" class="btn btn-secondary btn-icon">Charger</button>
+                        <button type="button" onclick="clearZonesCsv()" class="btn btn-ghost btn-icon">Effacer</button>
+                    </div>
+                </div>
+            </details>
+
+                <div class="field-group field-group--spaced">
+                    <label class="field-label">Population</label>
+                    <div class="input-row">
+                        <div>
+                            <label class="field-label" style="text-transform:none; letter-spacing:0;">Min</label>
+                            <input type="number" id="min-pop" value="5000" class="input">
+                        </div>
+                        <div>
+                            <label class="field-label" style="text-transform:none; letter-spacing:0;">Max</label>
+                            <input type="number" id="max-pop" value="50000" class="input">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="search-button" type="button" onclick="searchCities()" class="btn btn-primary btn-icon" style="width:100%; justify-content:center;">
+                    Lancer la recherche
+                </button>
+
+                <div id="loading" class="hidden" style="margin-top:16px; text-align:center;">
+                    <div class="loader" style="margin:0 auto;"></div>
+                    <p class="panel-subtitle" style="margin-top:8px;">Recherche en cours...</p>
+                    <div class="progress-bar" style="margin-top:10px;">
+                        <div id="progress-bar" class="progress-bar__fill"></div>
+                    </div>
+                    <p id="progress-text" class="panel-subtitle" style="margin-top:6px;" role="status" aria-live="polite">0 villes trouvees</p>
+                </div>
+
+                <div id="results-info" class="alert alert--info hidden" style="margin-top:16px;" role="status" aria-live="polite">
+                    <p></p>
+                </div>
+            </div>
+        </aside>
+
+        <section class="panel panel--results">
+            <div class="tabs-shell">
+                <span class="scroll-indicator scroll-indicator--left" aria-hidden="true">‹</span>
+                <span class="scroll-indicator scroll-indicator--right" aria-hidden="true">›</span>
+                <div class="tabs" role="tablist" aria-label="Resultats">
+                    <button type="button" onclick="switchTab('list')" id="tab-list" class="tab-button active" role="tab" aria-controls="list-view" aria-selected="true" tabindex="0">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                    Liste
+                    </button>
+                    <button type="button" onclick="switchTab('map')" id="tab-map" class="tab-button" role="tab" aria-controls="map-view" aria-selected="false" tabindex="-1">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                    </svg>
+                    Carte
+                    </button>
+                    <button type="button" onclick="switchTab('urgences')" id="tab-urgences" class="tab-button" role="tab" aria-controls="urgences-view" aria-selected="false" tabindex="-1">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    Urgences
+                    </button>
+                    <button type="button" onclick="switchTab('urgences-map')" id="tab-urgences-map" class="tab-button" role="tab" aria-controls="urgences-map-view" aria-selected="false" tabindex="-1">
+                    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Carte urgences
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-content">
+                <div id="list-view" class="tab-content" role="tabpanel" aria-labelledby="tab-list">
+                    <div class="results-header" style="margin-bottom:14px;">
+                        <h3 class="panel-title" style="margin:0;">Resultats</h3>
+                        <div class="table-actions">
+                            <button type="button" id="export-csv-btn" onclick="exportCSV()" class="btn btn-secondary btn-icon" disabled="" aria-disabled="true">CSV</button>
+                            <button type="button" id="export-json-btn" onclick="exportJSON()" class="btn btn-secondary btn-icon" disabled="" aria-disabled="true">JSON</button>
+                            <button type="button" id="save-results-btn" onclick="saveResults()" class="btn btn-primary btn-icon" disabled="" aria-disabled="true">Sauvegarder</button>
+                        </div>
+                    </div>
+
+                    <div id="share-section" class="share-box hidden" style="margin-bottom:14px;">
+                        <p class="panel-subtitle" style="margin-top:0;">Lien permanent pour partager</p>
+                        <div class="zone-input">
+                            <input type="text" id="share-link-inline" readonly="" class="input">
+                            <button type="button" onclick="copyShareLink()" class="btn btn-secondary btn-icon">Copier</button>
+                            <button type="button" onclick="openShareLink()" class="btn btn-primary btn-icon">Ouvrir</button>
+                        </div>
+                    </div>
+
+                    <div id="filter-section" class="table-toolbar hidden">
+                        <input type="text" id="results-filter" placeholder="Filtrer les resultats..." class="input" onkeyup="filterResults(this.value)" aria-label="Filtrer les resultats">
+                        <button type="button" onclick="clearFilter()" class="btn btn-ghost btn-icon">Effacer</button>
+                    </div>
+
+                    <div class="results-shell">
+                        <span class="scroll-indicator scroll-indicator--left" aria-hidden="true">‹</span>
+                        <span class="scroll-indicator scroll-indicator--right" aria-hidden="true">›</span>
+                        <div id="results-list"></div>
+                    </div>
+                </div>
+
+                <div id="map-view" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-map" aria-hidden="true">
+                    <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+                        <button type="button" id="fullscreen-btn" onclick="toggleMapFullscreen()" class="btn btn-secondary btn-icon">Plein ecran</button>
+                    </div>
+                    <div id="map" class="map-frame leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom" tabindex="0" style="position: relative;"><div class="leaflet-pane leaflet-map-pane" style="transform: translate3d(0px, 0px, 0px);"><div class="leaflet-pane leaflet-tile-pane"><div class="leaflet-layer " style="z-index: 1; opacity: 1;"><div class="leaflet-tile-container leaflet-zoom-animated" style="z-index: 19; transform: translate3d(0px, 0px, 0px) scale(1);"><img alt="" src="https://a.tile.openstreetmap.org/6/32/22.png" class="leaflet-tile leaflet-tile-loaded" style="width: 256px; height: 256px; transform: translate3d(-114px, -164px, 0px); opacity: 1;"></div></div></div><div class="leaflet-pane leaflet-overlay-pane"></div><div class="leaflet-pane leaflet-shadow-pane"></div><div class="leaflet-pane leaflet-marker-pane"></div><div class="leaflet-pane leaflet-tooltip-pane"></div><div class="leaflet-pane leaflet-popup-pane"></div><div class="leaflet-proxy leaflet-zoom-animated" style="transform: translate3d(8305.78px, 5795.89px, 0px) scale(32);"></div></div><div class="leaflet-control-container"><div class="leaflet-top leaflet-left"><div class="leaflet-control-zoom leaflet-bar leaflet-control"><a class="leaflet-control-zoom-in" href="#" title="Zoom in" role="button" aria-label="Zoom in" aria-disabled="false"><span aria-hidden="true">+</span></a><a class="leaflet-control-zoom-out" href="#" title="Zoom out" role="button" aria-label="Zoom out" aria-disabled="false"><span aria-hidden="true">−</span></a></div></div><div class="leaflet-top leaflet-right"></div><div class="leaflet-bottom leaflet-left"></div><div class="leaflet-bottom leaflet-right"><div class="leaflet-control-attribution leaflet-control"><a href="https://leafletjs.com" title="A JavaScript library for interactive maps"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8" class="leaflet-attribution-flag"><path fill="#4C7BE1" d="M0 0h12v4H0z"></path><path fill="#FFD500" d="M0 4h12v3H0z"></path><path fill="#E0BC00" d="M0 7h12v1H0z"></path></svg> Leaflet</a> <span aria-hidden="true">|</span> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</div></div></div></div>
+                </div>
+
+                <div id="urgences-view" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-urgences" aria-hidden="true">
+                    <div id="urgences-empty" class="panel-subtitle" style="text-align:center; padding:24px;">Lancez une recherche pour voir les services d'urgence</div>
+                    <div id="urgences-content" class="hidden">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span class="panel-subtitle"><strong id="urgences-count">0</strong> services d'urgence</span>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Nom</th>
+                                        <th scope="col">Commune</th>
+                                        <th scope="col">Code postal</th>
+                                        <th scope="col">Type</th>
+                                        <th scope="col">Distance</th>
+                                        <th scope="col">Zone ref</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="urgences-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="urgences-map-view" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-urgences-map" aria-hidden="true">
+                    <div id="urgences-map-empty" class="panel-subtitle" style="text-align:center; padding:24px;">Lancez une recherche pour voir la carte des urgences</div>
+                    <div id="urgences-map-content" class="hidden">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span class="panel-subtitle"><strong id="urgences-map-count">0</strong> services d'urgence affiches</span>
+                            <button type="button" id="urgences-fullscreen-btn" onclick="toggleUrgencesMapFullscreen()" class="btn btn-secondary btn-icon">Plein ecran</button>
+                        </div>
+                        <div id="urgences-map" class="map-frame"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <button id="scroll-top" class="scroll-top" aria-label="Remonter">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 19V5"></path>
+            <path d="M5 12l7-7 7 7"></path>
+        </svg>
+    </button>
+    <script src="./static/js/app.js?v=20260202f"></script>
+
+
+</body></html>

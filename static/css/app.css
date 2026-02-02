@@ -133,6 +133,12 @@ a:hover {
     .main-layout {
         grid-template-columns: 1fr;
     }
+
+    .panel--sticky {
+        position: static;
+        top: auto;
+        z-index: auto;
+    }
 }
 
 .panel {
@@ -147,6 +153,7 @@ a:hover {
 .panel--sticky {
     position: sticky;
     top: 24px;
+    z-index: 2;
 }
 
 .panel-header {
@@ -442,15 +449,27 @@ summary:focus-visible {
     color: #991b1b;
 }
 
+.tabs-shell {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px 16px 0 0;
+    background: #f8fbf9;
+    border-bottom: 1px solid #e3eee7;
+}
+
 .tabs {
     display: flex;
-    border-bottom: 1px solid #e3eee7;
-    background: #f8fbf9;
-    border-radius: 16px 16px 0 0;
     overflow: hidden;
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    position: relative;
+    padding: 0 24px;
+    scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .tab-button {
@@ -466,6 +485,7 @@ summary:focus-visible {
     align-items: center;
     justify-content: center;
     gap: 6px;
+    white-space: nowrap;
 }
 
 .tab-button.active {
@@ -775,21 +795,10 @@ summary:focus-visible {
     height: 520px;
 }
 
-#results-list {
-    overflow-x: auto;
-    width: 100%;
-    -webkit-overflow-scrolling: touch;
-    max-width: 100%;
-    overscroll-behavior-x: contain;
-    display: block;
-    min-width: 0;
-    touch-action: pan-x;
-}
-
 .scroll-top {
     position: fixed;
-    right: 20px;
-    bottom: 20px;
+    right: 16px;
+    top: 16px;
     width: 44px;
     height: 44px;
     border-radius: 999px;
@@ -811,6 +820,72 @@ summary:focus-visible {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
+}
+
+.scroll-indicator {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: var(--green-700);
+    background: linear-gradient(to right, rgba(248, 251, 249, 0.95), rgba(248, 251, 249, 0));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 3;
+}
+
+.scroll-indicator--right {
+    right: 0;
+    background: linear-gradient(to left, rgba(248, 251, 249, 0.95), rgba(248, 251, 249, 0));
+}
+
+.scroll-indicator--left {
+    left: 0;
+}
+
+.tabs-shell.has-overflow .scroll-indicator,
+.results-shell.has-overflow .scroll-indicator {
+    opacity: 1;
+}
+
+.results-shell {
+    position: relative;
+    overflow: hidden;
+}
+
+#results-list {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+    display: block;
+    min-width: 0;
+    touch-action: pan-x;
+    position: relative;
+}
+
+.results-shell .scroll-indicator {
+    top: 0;
+    bottom: auto;
+    height: 36px;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
+}
+
+.results-shell .scroll-indicator--right {
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
+}
+
+.btn[disabled],
+.btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 .loader {
@@ -837,6 +912,7 @@ summary:focus-visible {
     .tabs {
         overflow-x: auto;
         justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
     }
 
     .tab-button {
