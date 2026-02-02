@@ -1,4 +1,8 @@
-﻿from selenium import webdriver
+import os
+import shutil
+import glob
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -6,11 +10,41 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 def main():
+    cache_dir = os.path.join(os.path.dirname(__file__), ".selenium-cache")
+    os.makedirs(cache_dir, exist_ok=True)
+    os.environ["SELENIUM_MANAGER_CACHE_DIR"] = cache_dir
+    os.environ["SELENIUM_CACHE_PATH"] = cache_dir
+    os.environ["SE_CACHE_PATH"] = cache_dir
+    os.environ["SELENIUM_MANAGER_DISABLE_STATISTICS"] = "1"
+    os.environ["SE_DISABLE_REPORTING"] = "1"
+
+
     options = webdriver.ChromeOptions()
     options.add_argument('--headless=new')
     options.add_argument('--window-size=1400,900')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-software-rasterizer')
+    options.add_argument('--no-first-run')
+    options.add_argument('--no-default-browser-check')
+    options.add_argument('--remote-debugging-port=0')
+    options.add_argument(f'--user-data-dir={os.path.join(cache_dir, "profile")}')
 
-    driver = webdriver.Chrome(options=options)
+    chrome_driver_path = (
+        os.environ.get("CHROMEDRIVER_PATH")
+        or shutil.which("chromedriver")
+    )
+    if not chrome_driver_path:
+        candidates = glob.glob(os.path.join(cache_dir, "**", "chromedriver.exe"), recursive=True)
+        if candidates:
+            chrome_driver_path = candidates[0]
+
+    if chrome_driver_path:
+        driver = webdriver.Chrome(service=Service(chrome_driver_path), options=options)
+    else:
+        driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 20)
 
     try:
@@ -52,6 +86,68 @@ def main():
 
         # Ensure results table has rows
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#results-list table tbody tr')))
+
+        def check_overflow(label, width, height, zoom, prefix):
+            driver.set_window_size(width, height)
+            driver.execute_script("document.documentElement.style.zoom = arguments[0];", zoom)
+            driver.save_screenshot(f'tests/{prefix}_{label}.png')
+            return driver.execute_script(
+                """
+                const doc = document.documentElement;
+                const overflow = doc.scrollWidth > doc.clientWidth;
+                if (!overflow) return { overflow: false, offenders: [] };
+                const offenders = [];
+                const elements = Array.from(document.querySelectorAll('*'));
+                for (const el of elements) {
+                    if (!el || !el.getBoundingClientRect) continue;
+                    const sw = el.scrollWidth;
+                    const cw = el.clientWidth;
+                    if (sw > cw + 2) {
+                        const rect = el.getBoundingClientRect();
+                        offenders.push({
+                            tag: el.tagName,
+                            id: el.id || null,
+                            className: el.className || null,
+                            scrollWidth: sw,
+                            clientWidth: cw,
+                            rectWidth: rect.width
+                        });
+                        if (offenders.length >= 8) break;
+                    }
+                }
+                return { overflow: true, offenders };
+                """
+            )
+
+        scenarios = [
+            ("1080x2400", 1080, 2400, "1"),
+            ("390x844_zoom125", 390, 844, "1.25"),
+            ("360x800_zoom15", 360, 800, "1.5"),
+        ]
+
+        for label, w, h, z in scenarios:
+            result = check_overflow(label, w, h, z, "overflow_main")
+            if result.get("overflow"):
+                raise AssertionError(f"Page overflow detected on main results page ({label}): {result.get('offenders')}")
+
+        share_button = driver.find_element(By.XPATH, "//button[contains(., 'Sauvegarder')]")
+        driver.execute_script("arguments[0].click();", share_button)
+        share_input = wait.until(EC.presence_of_element_located((By.ID, 'share-link-inline')))
+        share_url = share_input.get_attribute('value')
+        if not share_url:
+            raise AssertionError("Share link not generated")
+
+        driver.get(share_url)
+        wait.until(EC.presence_of_element_located((By.ID, 'results-list')))
+        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '#results-list table tbody tr')))
+
+        def check_overflow_saved(label, width, height, zoom):
+            return check_overflow(label, width, height, zoom, "overflow_saved")
+
+        for label, w, h, z in scenarios:
+            result = check_overflow_saved(label, w, h, z)
+            if result.get("overflow"):
+                raise AssertionError(f"Page overflow detected on saved results page ({label}): {result.get('offenders')}")
 
         print('OK - selenium smoke test passed')
     except Exception as exc:

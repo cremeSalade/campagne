@@ -67,6 +67,7 @@ a:hover {
     max-width: 1200px;
     margin: 0 auto;
     padding: 24px;
+    width: 100%;
 }
 
 .site-header {
@@ -79,6 +80,8 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 18px;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
 .header-actions {
@@ -92,6 +95,8 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 16px;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
 .brand-icon {
@@ -105,6 +110,7 @@ a:hover {
     margin: 0;
     font-family: 'Fraunces', serif;
     font-size: 2rem;
+    word-break: break-word;
 }
 
 .site-subtitle {
@@ -119,6 +125,10 @@ a:hover {
     align-items: start;
 }
 
+.main-layout > * {
+    min-width: 0;
+}
+
 @media (max-width: 960px) {
     .main-layout {
         grid-template-columns: 1fr;
@@ -130,6 +140,8 @@ a:hover {
     border-radius: 18px;
     border: 1px solid var(--green-100);
     box-shadow: var(--shadow);
+    max-width: 100%;
+    min-width: 0;
 }
 
 .panel--sticky {
@@ -436,6 +448,9 @@ summary:focus-visible {
     background: #f8fbf9;
     border-radius: 16px 16px 0 0;
     overflow: hidden;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .tab-button {
@@ -466,13 +481,15 @@ summary:focus-visible {
 
 .panel-content {
     padding: 20px 24px 24px;
-    overflow-x: hidden;
+    overflow-x: visible;
+    min-width: 0;
 }
 
 .data-table {
     width: 100%;
     border-collapse: collapse;
     min-width: 900px;
+    max-width: 100%;
 }
 
 .data-table th {
@@ -595,6 +612,13 @@ summary:focus-visible {
     overflow-x: auto;
     width: 100%;
     -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+    display: block;
+    min-width: 0;
+    contain: layout;
+    touch-action: pan-x;
+    scrollbar-gutter: stable;
 }
 
 .cell-center {
@@ -755,6 +779,11 @@ summary:focus-visible {
     overflow-x: auto;
     width: 100%;
     -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+    display: block;
+    min-width: 0;
+    touch-action: pan-x;
 }
 
 .scroll-top {
@@ -815,8 +844,38 @@ summary:focus-visible {
         min-width: 140px;
     }
 
+    .wrap {
+        padding: 16px;
+    }
+
     .data-table {
         min-width: 720px;
+    }
+
+    .panel-content {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .wrap {
+        padding: 12px;
+    }
+}
+
+@media (max-width: 520px) {
+    .data-table {
+        min-width: 640px;
+    }
+}
+
+@media (max-width: 720px) {
+    #results-list::after {
+        content: "Glissez horizontalement pour voir toutes les colonnes";
+        display: block;
+        font-size: 0.75rem;
+        color: var(--muted);
+        padding: 6px 4px 0;
     }
 }
 
