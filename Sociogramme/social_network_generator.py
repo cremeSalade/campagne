@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#  type: ignore
 
 import tkinter as tk
 from tkinter import filedialog, colorchooser, ttk

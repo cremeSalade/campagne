@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#  type: ignore
+
 import os
 import shutil
 import glob

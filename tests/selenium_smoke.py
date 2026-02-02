@@ -1,10 +1,13 @@
+#!/usr/bin/env python
+#  type: ignore
+
 import os
 import shutil
 import glob
 import json
 import time
 import logging
-from selenium import webdriver
+from selenium import webdriver # type: ignore
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
